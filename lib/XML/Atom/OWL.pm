@@ -826,7 +826,7 @@ sub bnode
 	my $this    = shift;
 	my $element = shift;
 	
-	return sprintf('_:RDFaAutoNode%03d', $this->{bnodes}++);
+	return sprintf('_:AwolAutoNode%03d', $this->{bnodes}++);
 }
 
 sub valid_lang
