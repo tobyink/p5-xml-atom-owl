@@ -10,6 +10,7 @@ use HTTP::Link::Parser;
 use LWP::UserAgent;
 use RDF::Trine 0.112;
 use URI;
+use URI::URL;
 use XML::LibXML qw(:all);
 
 use constant ATOM_NS =>  'http://www.w3.org/2005/Atom';
@@ -106,9 +107,9 @@ sub uri
 	}
 	
 	my $base = $this->{baseuri};
-	if ($this->{'options'}->{'xml_base'})
+	if ($opts->{'element'})
 	{
-		$base = $opts->{'xml_base'} || $this->{baseuri};
+		$base = $this->get_node_base($opts->{'element'});
 	}
 	
 	my $url = url $param, $base;
@@ -629,8 +630,6 @@ sub get_node_lang
 	my $this = shift;
 	my $node = shift;
 
-	my $XML_XHTML_NS = 'http://www.w3.org/1999/xhtml';
-
 	if ($node->hasAttributeNS(XML_XML_NS, 'lang'))
 	{
 		return valid_lang($node->getAttributeNS(XML_XML_NS, 'lang')) ?
@@ -647,6 +646,33 @@ sub get_node_lang
 	
 	return undef;
 }
+
+sub get_node_base
+{
+	my $this = shift;
+	my $node = shift;
+
+	my @base;
+
+	while (1)
+	{
+		push @base, $node->getAttributeNS(XML_XML_NS, 'base')
+			if $node->hasAttributeNS(XML_XML_NS, 'base');
+			
+		$node = $node->parentNode;
+		last unless UNIVERSAL::isa($node, 'XML::LibXML::Element');
+	}
+	
+	my $rv = url $this->uri; # document URI.
+	
+	while (my $b = pop @base)
+	{
+		$rv = url $b, $rv->abs->as_string;
+	}
+	
+	return $rv->abs->as_string;
+}
+
 
 =item $p->graph() 
 
@@ -825,6 +851,11 @@ sub bnode
 {
 	my $this    = shift;
 	my $element = shift;
+	
+	if (defined $this->{'bnode_generator'})
+	{
+		return $this->{'bnode_generator'}->bnode($element);
+	}
 	
 	return sprintf('_:AwolAutoNode%03d', $this->{bnodes}++);
 }
