@@ -3,7 +3,7 @@ use RDF::Trine::Serializer::NTriples;
 use LWP::Simple;
 use XML::Atom::OWL;
 
-my $u = "http://bblfish.net/work/atom-owl/2006-06-06/examples/example-1.atom";
+my $u = "http://bblfish.net/work/atom-owl/2006-06-06/examples/example-2.atom";
 my $p = XML::Atom::OWL->new(get($u), $u);
 $p->consume;
 

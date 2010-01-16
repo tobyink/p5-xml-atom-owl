@@ -14,6 +14,7 @@ use XML::LibXML qw(:all);
 
 use constant ATOM_NS =>  'http://www.w3.org/2005/Atom';
 use constant AWOL_NS =>  'http://bblfish.net/work/atom-owl/2006-06-06/#';
+use constant FOAF_NS =>  'http://xmlns.com/foaf/0.1/';
 use constant RDF_NS =>   'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 use constant RDF_TYPE => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
 use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
@@ -113,7 +114,6 @@ sub uri
 	my $url = url $param, $base;
 	my $rv  = $url->abs->as_string;
 
-	# This is needed to pass test case 0114.
 	while ($rv =~ m!^(http://.*)(\.\./|\.)+(\.\.|\.)?$!i)
 	{
 		$rv = $1;
@@ -143,6 +143,10 @@ sub consume
 	{
 		$self->consume_feed($root);
 	}
+	elsif ($root->namespaceURI eq ATOM_NS and $root->localname eq 'entry')
+	{
+		$self->consume_entry($root);
+	}
 	
 	return $self;
 }
@@ -151,27 +155,17 @@ sub consume_feed
 {
 	my $self = shift;
 	my $feed = shift;
+	my $skip_entries = shift || 0;
 	
 	# Feed
-	my $feed_identifier;
-	{
-		my @elems = $feed->getChildrenByTagNameNS(ATOM_NS, 'id');
-		if (@elems)
-		{
-			$feed_identifier = $elems[0]->textContent;
-			$self->rdf_triple_literal($elems[0], $feed_identifier, AWOL_NS.'id', $feed_identifier, XSD_NS.'anyURI');
-		}
-		if (!$feed_identifier)
-		{
-			$feed_identifier = $self->bnode($feed);
-		}
-	}
+	my $feed_identifier = $self->bnode($feed);
 	$self->rdf_triple($feed, $feed_identifier, RDF_TYPE, AWOL_NS.'Feed');
 
 	# Common stuff
 	$self->consume_feed_or_entry($feed, $feed_identifier);
 	
-	# Entries
+	# entry
+	unless ($skip_entries)
 	{
 		my @elems = $feed->getChildrenByTagNameNS(ATOM_NS, 'entry');
 		foreach my $e (@elems)
@@ -180,12 +174,39 @@ sub consume_feed
 			$self->rdf_triple($e, $feed_identifier, AWOL_NS.'entry', $entry_identifier);		
 		}
 	}
-
-	# TODO - generator
-	# TODO - icon
-	# TODO - logo
-	# TODO - subtitle
 	
+	# icon and logo
+	foreach my $role (qw(icon logo))
+	{
+		my @elems = $feed->getChildrenByTagNameNS(ATOM_NS, $role);
+		foreach my $e (@elems)
+		{
+			my $img = $self->uri($e->textContent, $e);
+			$self->rdf_triple($e, $feed_identifier, AWOL_NS.$role, $img);
+			$self->rdf_triple($e, $img, RDF_TYPE, FOAF_NS.'Image');
+		}
+	}
+
+	# generator
+	{
+		my @elems = $feed->getChildrenByTagNameNS(ATOM_NS, 'generator');
+		foreach my $e (@elems)
+		{
+			my $gen_identifier = $self->consume_generator($e);
+			$self->rdf_triple($e, $feed_identifier, AWOL_NS.'generator', $gen_identifier);
+		}
+	}
+	
+	# subtitle
+	{
+		my @elems = $feed->getChildrenByTagNameNS(ATOM_NS, 'subtitle');
+		foreach my $e (@elems)
+		{
+			my $content_identifier = $self->consume_textconstruct($e);
+			$self->rdf_triple($e, $feed_identifier, AWOL_NS.'subtitle', $content_identifier);
+		}
+	}
+
 	return $feed_identifier;
 }
 
@@ -195,19 +216,7 @@ sub consume_entry
 	my $entry = shift;
 	
 	# Entry
-	my $entry_identifier;
-	{
-		my @elems = $entry->getChildrenByTagNameNS(ATOM_NS, 'id');
-		if (@elems)
-		{
-			$entry_identifier = $elems[0]->textContent;
-			$self->rdf_triple_literal($elems[0], $entry_identifier, AWOL_NS.'id', $entry_identifier, XSD_NS.'anyURI');
-		}
-		if (!$entry_identifier)
-		{
-			$entry_identifier = $self->bnode($entry);
-		}
-	}
+	my $entry_identifier = $self->bnode($entry);
 	$self->rdf_triple($entry, $entry_identifier, RDF_TYPE, AWOL_NS.'Entry');
 
 	# Common stuff
@@ -222,9 +231,35 @@ sub consume_entry
 		}
 	}
 
-	# TODO - content
-	# TODO - source
-	# TODO - summary	
+	# summary
+	{
+		my @elems = $entry->getChildrenByTagNameNS(ATOM_NS, 'content');
+		foreach my $e (@elems)
+		{
+			my $content_identifier = $self->consume_content($e);
+			$self->rdf_triple($e, $entry_identifier, AWOL_NS.'content', $content_identifier);
+		}
+	}
+	
+	# source
+	{
+		my @elems = $entry->getChildrenByTagNameNS(ATOM_NS, 'source');
+		foreach my $e (@elems)
+		{
+			my $feed_identifier = $self->consume_feed($e, 1);
+			$self->rdf_triple($e, $entry_identifier, AWOL_NS.'source', $feed_identifier);
+		}
+	}
+
+	# summary
+	{
+		my @elems = $entry->getChildrenByTagNameNS(ATOM_NS, 'summary');
+		foreach my $e (@elems)
+		{
+			my $content_identifier = $self->consume_textconstruct($e);
+			$self->rdf_triple($e, $entry_identifier, AWOL_NS.'summary', $content_identifier);
+		}
+	}
 
 	return $entry_identifier;
 }
@@ -234,6 +269,13 @@ sub consume_feed_or_entry
 	my $self = shift;
 	my $fore = shift;
 	my $id   = shift;
+	
+	my @elems = $fore->getChildrenByTagNameNS(ATOM_NS, 'id');
+	foreach my $e (@elems)
+	{
+		my $_id = $self->uri($e->textContent, $e);
+		$self->rdf_triple_literal($e, $id, AWOL_NS.'id', $_id, XSD_NS.'anyURI');
+	}
 	
 	# authors and contributors
 	foreach my $role (qw(author contributor))
@@ -265,9 +307,120 @@ sub consume_feed_or_entry
 		}
 	}
 
-	# TODO - category
-	# TODO - rights
-	# TODO - title
+	# title and rights
+	foreach my $role (qw(title rights))
+	{
+		my @elems = $fore->getChildrenByTagNameNS(ATOM_NS, $role);
+		foreach my $e (@elems)
+		{
+			my $content_identifier = $self->consume_textconstruct($e);
+			$self->rdf_triple($e, $id, AWOL_NS.$role, $content_identifier);
+		}
+	}
+	
+	# category
+	{
+		my @elems = $fore->getChildrenByTagNameNS(ATOM_NS, 'category');
+		foreach my $e (@elems)
+		{
+			my $cat_identifier = $self->consume_category($e, $id);
+			$self->rdf_triple($e, $id, AWOL_NS.'category', $cat_identifier);
+		}
+	}
+	
+	return $id;
+}
+
+sub consume_textconstruct
+{
+	my $self = shift;
+	my $elem = shift;
+	
+	my $id = $self->bnode($elem);
+	$self->rdf_triple($elem, $id, RDF_TYPE, AWOL_NS.'TextContent');
+	
+	my $lang = $self->get_node_lang($elem);
+	
+	if (lc $elem->getAttribute('type') eq 'xhtml')
+	{
+		my $cnt = $self->xmlify($elem, $lang);
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'xhtml', $cnt, RDF_NS.'XMLLiteral');
+	}
+
+	elsif (lc $elem->getAttribute('type') eq 'html')
+	{
+		my $cnt = $elem->textContent;
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'html', $cnt, undef, $lang);
+	}
+
+	else
+	{
+		my $cnt = $elem->textContent;
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'text', $cnt, undef, $lang);
+	}
+	
+	return $id;
+}
+
+sub consume_content
+{
+	my $self = shift;
+	my $elem = shift;
+	
+	my $id = $self->bnode($elem);
+	$self->rdf_triple($elem, $id, RDF_TYPE, AWOL_NS.'Content');
+	
+	my $lang = $self->get_node_lang($elem);
+	
+	if ($elem->hasAttribute('src'))
+	{
+		my $link = $self->uri($elem->getAttribute('src'), $elem);
+		$self->rdf_triple($elem, $id, AWOL_NS.'src', $link);
+		
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'))
+			if $elem->hasAttribute('type');
+	}
+	
+	elsif (lc $elem->getAttribute('type') eq 'xhtml')
+	{
+		my $cnt = $self->xmlify($elem, $lang);
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, RDF_NS.'XMLLiteral');
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', 'application/xhtml+xml');
+	}
+
+	elsif (lc $elem->getAttribute('type') eq 'html')
+	{
+		my $cnt = $elem->textContent;
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, undef, $lang);
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', 'text/html');
+	}
+
+	elsif ($elem->getAttribute('type') =~ m'^[^/]+/[^/]+$' 
+	or	    $elem->getChildrenByTagName('*'))
+	{
+		if ($elem->getChildrenByTagName('*'))
+		{
+			my $cnt = $self->xmlify($elem, $lang);
+			$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, RDF_NS.'XMLLiteral');			
+		}
+		else
+		{
+			my $cnt = $elem->textContent;
+			$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, undef, $lang);
+		}
+		
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'))
+			if $elem->hasAttribute('type');
+	}
+
+	else
+	{
+		my $cnt = $elem->textContent;
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, undef, $lang);
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', 'text/plain');
+	}
+	
+	return $id;
 }
 
 sub consume_person
@@ -293,7 +446,8 @@ sub consume_person
 		my @elems = $person->getChildrenByTagNameNS(ATOM_NS, 'uri');
 		foreach my $e (@elems)
 		{
-			$self->rdf_triple($e, $person_identifier, AWOL_NS.'url', $e->textContent);
+			my $link = $self->uri($e->textContent, $e);
+			$self->rdf_triple($e, $person_identifier, AWOL_NS.'uri', $link);
 		}
 	}
 
@@ -309,6 +463,36 @@ sub consume_person
 	return $person_identifier;
 }
 
+sub consume_generator
+{
+	my $self   = shift;
+	my $elem   = shift;
+	
+	# Person
+	my $identifier = $self->bnode($elem);
+	$self->rdf_triple($elem, $identifier, RDF_TYPE, AWOL_NS.'Generator');
+	
+	# name
+	{
+		my $lang = $self->get_node_lang($elem);
+		$self->rdf_triple_literal($elem, $identifier, AWOL_NS.'name', $elem->textContent, undef, $lang);
+	}
+
+	# uri
+	if ($elem->hasAttribute('uri'))
+	{
+		my $link = $self->uri($elem->getAttribute('uri'), $elem);
+		$self->rdf_triple($elem, $identifier, AWOL_NS.'uri', $link);
+	}
+
+	# version
+	if ($elem->hasAttribute('uri'))
+	{
+		$self->rdf_triple($elem, $identifier, AWOL_NS.'version', $elem->getAttribute('version'));
+	}
+
+	return $identifier;
+}
 
 sub consume_link
 {
@@ -333,7 +517,7 @@ sub consume_link
 		
 		if ($link->hasAttribute('href') and defined $subject)
 		{
-			my $href = $self->uri($link->getAttribute('href'));
+			my $href = $self->uri($link->getAttribute('href'), $link);
 			$self->rdf_triple($link, $subject, $rel, $href);
 		}
 	}
@@ -341,7 +525,7 @@ sub consume_link
 	# href
 	if ($link->hasAttribute('href'))
 	{
-		my $href = $self->uri($link->getAttribute('href'));
+		my $href = $self->uri($link->getAttribute('href'), $link);
 		$self->rdf_triple($link, $destination_identifier, AWOL_NS.'src', $href);
 	}
 
@@ -369,13 +553,100 @@ sub consume_link
 	# title: TODO - check this uses AWOL properly.
 	if ($link->hasAttribute('title'))
 	{
+		my $lang  = $self->get_node_lang($link);
 		my $title = $link->getAttribute('title');
-		$self->rdf_triple_literal($link, $link_identifier, AWOL_NS.'title', $title);
+		$self->rdf_triple_literal($link, $link_identifier, AWOL_NS.'title', $title, undef, $lang);
 	}
 
 	return $link_identifier;
 }
 
+sub consume_category
+{
+	my $self    = shift;
+	my $elem    = shift;
+	
+	# Link
+	my $id = $self->bnode($elem);
+	$self->rdf_triple($elem, $id, RDF_TYPE, AWOL_NS.'Category');
+
+	# term
+	if ($elem->hasAttribute('term'))
+	{
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'term', $elem->getAttribute('term'));
+	}
+	
+	# label
+	if ($elem->hasAttribute('label'))
+	{
+		my $lang = $self->get_node_lang($elem);
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'label', $elem->getAttribute('label'), undef, $lang);
+	}
+
+	# scheme
+	if ($elem->hasAttribute('scheme'))
+	{
+		my $link = $self->uri($elem->getAttribute('scheme'), $elem);
+		$self->rdf_triple($elem, $id, AWOL_NS.'scheme', $link);
+	}
+
+	return $id;
+}
+
+sub xmlify
+# Function only used internally.
+{
+	my $this = shift;
+	my $dom  = shift;
+	my $lang = shift;
+	my $rv;
+	
+	foreach my $kid ($dom->childNodes)
+	{
+		my $fakelang = 0;
+		if (($kid->nodeType == XML_ELEMENT_NODE) && defined $lang)
+		{
+			unless ($kid->hasAttributeNS(XML_XML_NS, 'lang'))
+			{
+				$kid->setAttributeNS(XML_XML_NS, 'lang', $lang);
+				$fakelang++;
+			}
+		}
+		
+		$rv .= $kid->toStringEC14N(1);
+		
+		if ($fakelang)
+		{
+			$kid->removeAttributeNS(XML_XML_NS, 'lang');
+		}
+	}
+	
+	return $rv;
+}
+
+sub get_node_lang
+{
+	my $this = shift;
+	my $node = shift;
+
+	my $XML_XHTML_NS = 'http://www.w3.org/1999/xhtml';
+
+	if ($node->hasAttributeNS(XML_XML_NS, 'lang'))
+	{
+		return valid_lang($node->getAttributeNS(XML_XML_NS, 'lang')) ?
+			$node->getAttributeNS(XML_XML_NS, 'lang'):
+			undef;
+	}
+
+	if ($node != $this->{'DOM'}->documentElement
+	&&  defined $node->parentNode
+	&&  $node->parentNode->nodeType == XML_ELEMENT_NODE)
+	{
+		return $this->get_node_lang($node->parentNode);
+	}
+	
+	return undef;
+}
 
 =item $p->graph() 
 
