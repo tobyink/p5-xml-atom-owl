@@ -1,3 +1,19 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+XML::Atom::OWL - Parse an Atom file into RDF
+
+=head1 SYNOPSIS
+
+ use XML::Atom::OWL;
+ 
+ $parser = XML::Atom::OWL->new($xml, $baseuri);
+ $parser->consume;
+ $graph  = $parser->graph;
+
+=cut
+
 package XML::Atom::OWL;
 
 use 5.008;
@@ -20,7 +36,37 @@ use constant RDF_NS =>   'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 use constant RDF_TYPE => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
 use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
 
+=head1 VERSION
+
+0.01
+
+=cut
+
 my $VERSION = '0.01';
+
+=head1 PUBLIC METHODS
+
+=over 4
+
+=item $p = XML::Atom::OWL->new($xml, $baseuri, \%options, $storage)
+
+This method creates a new XML::Atom::OWL object and returns it.
+
+The $xml variable may contain an XML (Atom) string, an
+XML::LibXML::Document object, or undef. If a string, the document
+is parsed using XML::LibXML::Parser, which will throw an exception
+if it is not well-formed. XML::Atom::OWL does not catch the exception.
+
+The base URI is used to resolve relative URIs found in the document.
+If $xml was undef, the URI will be fetched using LWP::UserAgent.
+
+Currently no options are defined, but this hashref is reserved for
+future use.
+
+$storage is an RDF::Trine::Storage object. If undef, then a new
+temporary store is created.
+
+=cut
 
 sub new
 {
@@ -63,6 +109,7 @@ sub new
 		'baseuri'   => $baseuri,
 		'options'   => $options,
 		'DOM'       => $domtree,
+		'sub'       => {},
 		'RESULTS'   => RDF::Trine::Model->new($store),
 		}, $class;
 
@@ -134,6 +181,58 @@ sub dom
 	my $this = shift;
 	return $this->{DOM};
 }
+
+=item $p->set_callbacks(\%callbacks)
+
+Set callback functions for the parser to call on certain events. These are only necessary if
+you want to do something especially unusual.
+
+  $p->set_callbacks({
+    'pretriple_resource' => sub { ... } ,
+    'pretriple_literal'  => sub { ... } ,
+    'ontriple'           => undef ,
+    });
+
+For details of the callback functions, see the section CALLBACKS. C<set_callbacks> must
+be used I<before> C<consume>. C<set_callbacks> itself returns a reference to the parser
+object itself.
+
+=cut
+
+sub set_callbacks
+# Set callback functions for handling RDF triples.
+{
+	my $this = shift;
+
+	if ('HASH' eq ref $_[0])
+	{
+		$this->{'sub'} = $_[0];
+	}
+	elsif (defined $_[0])
+	{
+		die("What kind of callback hashref was that??\n");
+	}
+	else
+	{
+		$this->{'sub'} = undef;
+	}
+	
+	return $this;
+}
+
+=item $p->consume
+
+The document is parsed. Triples extracted from the document are passed
+to the callbacks as each one is found; triples are made available in the
+model returned by the C<graph> method.
+
+This function returns the parser object itself, making it easy to
+abbreviate several of XML::Atom::OWL's functions:
+
+  my $iterator = XML::Atom::OWL->new(undef, $uri)
+                 ->consume->graph->as_stream;
+
+=cut
 
 sub consume
 {
@@ -702,10 +801,8 @@ sub rdf_triple
 	my $this = shift;
 
 	my $suppress_triple = 0;
-	if ($this->{'sub'}->[0])
-	{
-		$suppress_triple = $this->{'sub'}->[0]($this, @_);
-	}
+	$suppress_triple = $this->{'sub'}->{'pretriple_resource'}($this, @_)
+		if defined $this->{'sub'}->{'pretriple_resource'};
 	return if $suppress_triple;
 	
 	my $element   = shift;  # A reference to the XML::LibXML element being parsed
@@ -735,10 +832,8 @@ sub rdf_triple_literal
 	my $this = shift;
 
 	my $suppress_triple = 0;
-	if ($this->{'sub'}->[1])
-	{
-		$suppress_triple = $this->{'sub'}->[1]($this, @_);
-	}
+	$suppress_triple = $this->{'sub'}->{'pretriple_literal'}($this, @_)
+		if defined $this->{'sub'}->{'pretriple_literal'};
 	return if $suppress_triple;
 
 	my $element   = shift;  # A reference to the XML::LibXML element being parsed
@@ -793,7 +888,7 @@ sub rdf_triple_literal
 sub rdf_triple_common
 # Function only used internally.
 {
-	my $this      = shift;  # A reference to the RDF::RDFa::Parser object
+	my $this      = shift;  # A reference to the Parser object
 	my $element   = shift;  # A reference to the XML::LibXML element being parsed
 	my $subject   = shift;  # Subject URI or bnode
 	my $predicate = shift;  # Predicate URI
@@ -812,6 +907,8 @@ sub rdf_triple_common
 		$ts = RDF::Trine::Node::Resource->new($subject);
 	}
 
+	my $statement;
+
 	# If we are configured for it, and graph name can be found, add it.
 	if (ref($this->{'options'}->{'named_graphs'}) && ($graph))
 	{
@@ -827,23 +924,19 @@ sub rdf_triple_common
 			$tg = RDF::Trine::Node::Resource->new($graph);
 		}
 
-		my $statement = RDF::Trine::Statement::Quad->new($ts, $tp, $to, $tg);
-		$this->{RESULTS}->add_statement($statement);
-	
-		#if ($graph ne $this->{'options'}->{'named_graphs'}->{'default'})
-		#{
-		#	my $graph_statement = RDF::Trine::Statement::Quad->new($ts, $tp, $to, 
-		#		$this->{'options'}->{'named_graphs'}->{'default_trine'});
-		#	$this->{RESULTS}->add_statement($graph_statement,
-		#		$this->{'options'}->{'named_graphs'}->{'default_trine'});
-		#}
+		$statement = RDF::Trine::Statement::Quad->new($ts, $tp, $to, $tg);
 	}
 	else
 	{
-		# If no graph name, just add triples
-		my $statement = RDF::Trine::Statement->new($ts, $tp, $to);
-		$this->{RESULTS}->add_statement($statement);
+		$statement = RDF::Trine::Statement->new($ts, $tp, $to);
 	}
+
+	my $suppress_triple = 0;
+	$suppress_triple = $this->{'sub'}->{'ontriple'}($this, $element, $statement)
+		if ($this->{'sub'}->{'ontriple'});
+	return if $suppress_triple;
+
+	$this->{RESULTS}->add_statement($statement);
 }
 
 sub bnode
@@ -960,3 +1053,112 @@ sub valid_lang
 }
 
 1;
+
+=back
+
+=head1 CALLBACKS
+
+Several callback functions are provided. These may be set using the C<set_callbacks> function,
+which taskes a hashref of keys pointing to coderefs. The keys are named for the event to fire the
+callback on.
+
+=head2 pretriple_resource
+
+This is called when a triple has been found, but before preparing the triple for
+adding to the model. It is only called for triples with a non-literal object value.
+
+The parameters passed to the callback function are:
+
+=over 4
+
+=item * A reference to the C<XML::Atom::OWL> object
+
+=item * A reference to the C<XML::LibXML::Element> being parsed
+
+=item * Subject URI or bnode (string)
+
+=item * Predicate URI (string)
+
+=item * Object URI or bnode (string)
+
+=item * Graph URI or bnode (string or undef)
+
+=back
+
+The callback should return 1 to tell the parser to skip this triple (not add it to
+the graph); return 0 otherwise.
+
+=head2 pretriple_literal
+
+This is the equivalent of pretriple_resource, but is only called for triples with a
+literal object value.
+
+The parameters passed to the callback function are:
+
+=over 4
+
+=item * A reference to the C<XML::Atom::OWL> object
+
+=item * A reference to the C<XML::LibXML::Element> being parsed
+
+=item * Subject URI or bnode (string)
+
+=item * Predicate URI (string)
+
+=item * Object literal (string)
+
+=item * Datatype URI (string or undef)
+
+=item * Language (string or undef)
+
+=item * Graph URI or bnode (string or undef)
+
+=back
+
+Beware: sometimes both a datatype I<and> a language will be passed. 
+This goes beyond the normal RDF data model.)
+
+The callback should return 1 to tell the parser to skip this triple (not add it to
+the graph); return 0 otherwise.
+
+=head2 ontriple
+
+This is called once a triple is ready to be added to the graph. (After the pretriple
+callbacks.) The parameters passed to the callback function are:
+
+=over 4
+
+=item * A reference to the C<XML::Atom::OWL> object
+
+=item * A reference to the C<XML::LibXML::Element> being parsed
+
+=item * An RDF::Trine::Statement object.
+
+=back
+
+The callback should return 1 to tell the parser to skip this triple (not add it to
+the graph); return 0 otherwise. The callback may modify the RDF::Trine::Statement
+object.
+
+=head1 BUGS
+
+Please report any bugs to L<http://rt.cpan.org/>.
+
+=head1 SEE ALSO
+
+L<RDF::Trine>, L<RDF::RDFa::Parser>.
+
+L<http://www.perlrdf.org/>.
+
+=head1 AUTHOR
+
+Toby Inkster E<lt>tobyink@cpan.orgE<gt>.
+
+=head1 COPYRIGHT
+
+Copyright 2010 Toby Inkster
+
+This library is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
