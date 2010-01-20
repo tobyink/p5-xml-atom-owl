@@ -20,13 +20,13 @@
 
 #############################################################
 
-my:v_0.01
+my:v_0_01
 
 	a               :Version ;
 	dc:issued       "2010-01-18"^^xsd:date ;
 	:revision       "0.01"^^xsd:string ;
 	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.01.tar.gz> ;
-	rdfs:comment    "Original version"@en .
+	rdfs:label      "First release"@en .
 
 #############################################################
 
@@ -46,7 +46,7 @@ my:project
 	:tester         toby:i ;
 	:created        "2010-01-15"^^xsd:date ;
 	:license        <http://dev.perl.org/licenses/> ;
-	:release        my:v_0.01 .
+	:release        my:v_0_01 .
 
 #############################################################
 

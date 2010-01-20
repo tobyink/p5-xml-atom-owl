@@ -42,7 +42,7 @@ use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
 
 =cut
 
-my $VERSION = '0.01';
+our $VERSION = '0.01';
 
 =head1 PUBLIC METHODS
 
