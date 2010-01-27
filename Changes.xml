@@ -21,6 +21,39 @@
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.01</revision>
     <rdfs:label xml:lang="en">First release</rdfs:label>
   </Version>
+  <Version rdf:about="http://search.cpan.org/dist/XML-Atom-OWL/#v_0_02">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:versus rdf:resource="http://search.cpan.org/dist/XML-Atom-OWL/#v_0_01"/>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label xml:lang="en">Support for Atom Threading Extension</rdfs:label>
+            <rdfs:seeAlso rdf:resource="http://www.ietf.org/rfc/rfc4685.txt"/>
+          </dcs:Addition>
+        </dc:item>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label xml:lang="en">Support for Feed Paging and Archiving</rdfs:label>
+            <rdfs:seeAlso rdf:resource="http://www.ietf.org/rfc/rfc5005.txt"/>
+          </dcs:Addition>
+        </dc:item>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label xml:lang="en">Support for Atom License Extension</rdfs:label>
+            <rdfs:seeAlso rdf:resource="http://www.ietf.org/rfc/rfc4946.txt"/>
+          </dcs:Addition>
+        </dc:item>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label xml:lang="en">Support arbitrary other extensions using XML literals.</rdfs:label>
+          </dcs:Addition>
+        </dc:item>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-01-??</dc:issued>
+    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.02.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.02</revision>
+  </Version>
   <Project rdf:about="http://search.cpan.org/dist/XML-Atom-OWL/#project">
     <bug-database rdf:resource="http://rt.cpan.org/Dist/Display.html?Queue=XML-Atom-OWL"/>
     <created rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-01-15</created>
@@ -33,6 +66,7 @@
     <name>XML-Atom-OWL</name>
     <programming-language>Perl</programming-language>
     <release rdf:resource="http://search.cpan.org/dist/XML-Atom-OWL/#v_0_01"/>
+    <release rdf:resource="http://search.cpan.org/dist/XML-Atom-OWL/#v_0_02"/>
     <repository>
       <SVNRepository>
         <browse rdf:resource="http://goddamn.co.uk/viewvc/perlmods/XML-Atom-OWL/"/>

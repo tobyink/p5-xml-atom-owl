@@ -31,18 +31,22 @@ use XML::LibXML qw(:all);
 
 use constant ATOM_NS =>  'http://www.w3.org/2005/Atom';
 use constant AWOL_NS =>  'http://bblfish.net/work/atom-owl/2006-06-06/#';
+use constant AX_NS =>    'http://buzzword.org.uk/rdf/atomix#';
+use constant FH_NS =>    'http://purl.org/syndication/history/1.0';
 use constant FOAF_NS =>  'http://xmlns.com/foaf/0.1/';
+use constant IANA_NS =>  'http://www.iana.org/assignments/relation/';
 use constant RDF_NS =>   'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 use constant RDF_TYPE => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
+use constant THR_NS =>   'http://purl.org/syndication/thread/1.0';
 use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
 
 =head1 VERSION
 
-0.01
+0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 PUBLIC METHODS
 
@@ -263,7 +267,21 @@ sub consume_feed
 
 	# Common stuff
 	$self->consume_feed_or_entry($feed, $feed_identifier);
+
+	# fh:archive and fh:complete
+	if ($feed->getChildrenByTagNameNS(FH_NS, 'archive'))
+	{
+		$self->rdf_triple($feed, $feed_identifier, RDF_TYPE, AX_NS.'ArchiveFeed');
+	}
+	my $complete = 0;
+	if ($feed->getChildrenByTagNameNS(FH_NS, 'complete'))
+	{
+		$complete = 1;
+		$self->rdf_triple($feed, $feed_identifier, RDF_TYPE, AX_NS.'CompleteFeed');
+	}
 	
+	my $last_listid;
+
 	# entry
 	unless ($skip_entries)
 	{
@@ -271,7 +289,36 @@ sub consume_feed
 		foreach my $e (@elems)
 		{
 			my $entry_identifier = $self->consume_entry($e);
-			$self->rdf_triple($e, $feed_identifier, AWOL_NS.'entry', $entry_identifier);		
+			$self->rdf_triple($e, $feed_identifier, AWOL_NS.'entry', $entry_identifier);
+
+			# If this feed is known to be complete, include an rdf:List
+			# to assist in open-world reasoning.
+			if ($complete)
+			{
+				my $listid = $self->bnode;
+				if (defined $last_listid)
+				{
+					$self->rdf_triple($e, $last_listid, RDF_NS.'rest', $listid);
+				}
+				else
+				{
+					$self->rdf_triple($e, $feed_identifier, AX_NS.'entry-list', $listid);
+				}
+				$self->rdf_triple($e, $listid, RDF_TYPE, RDF_NS.'List');
+				$self->rdf_triple($e, $listid, RDF_NS.'first', $entry_identifier);
+				$last_listid = $listid;
+			}
+		}
+	}
+	if ($complete)
+	{
+		if (defined $last_listid)
+		{
+			$self->rdf_triple($feed, $last_listid, RDF_NS.'rest', RDF_NS.'nil');
+		}
+		else
+		{
+			$self->rdf_triple($feed, $feed_identifier, AX_NS.'entry-list', RDF_NS.'nil');
 		}
 	}
 	
@@ -361,6 +408,26 @@ sub consume_entry
 		}
 	}
 
+	# thr:in-reply-to
+	{
+		my @elems = $entry->getChildrenByTagNameNS(THR_NS, 'in-reply-to');
+		foreach my $e (@elems)
+		{
+			my $irt_id = $self->consume_inreplyto($e);
+			$self->rdf_triple($e, $entry_identifier, AX_NS.'in-reply-to', $irt_id);
+		}
+	}
+
+	# thr:total
+	{
+		my @elems = $entry->getChildrenByTagNameNS(THR_NS, 'total');
+		foreach my $e (@elems)
+		{
+			my $total = $e->textContent;
+			$self->rdf_triple_literal($e, $entry_identifier, AX_NS.'total', $total, XSD_NS.'integer');
+		}
+	}
+	
 	return $entry_identifier;
 }
 
@@ -428,6 +495,20 @@ sub consume_feed_or_entry
 		}
 	}
 	
+	# Unknown Extensions!
+	{
+		my @elems = $fore->getChildrenByTagName('*');
+		foreach my $e (@elems)
+		{
+			next if $e->namespaceURI eq ATOM_NS;
+			next if $e->namespaceURI eq FH_NS;
+			next if $e->namespaceURI eq THR_NS;
+			
+			my $xml = $self->xmlify_inclusive($e);
+			$self->rdf_triple_literal($e, $id, AX_NS.'extension-element', $xml, RDF_NS.'XMLLiteral');
+		}
+	}
+
 	return $id;
 }
 
@@ -594,6 +675,39 @@ sub consume_generator
 	return $identifier;
 }
 
+sub consume_inreplyto
+{
+	my $self    = shift;
+	my $link    = shift;
+	
+	my $id = $self->bnode($link);
+	$self->rdf_triple($link, $id, RDF_TYPE, AWOL_NS.'Entry');
+	
+	if ($link->hasAttribute('ref'))
+	{
+		$self->rdf_triple_literal($link, $id, AWOL_NS.'id', $link->getAttribute('ref'), XSD_NS.'anyURI');
+	}
+	
+	if ($link->hasAttribute('href'))
+	{
+		my $href = $self->uri($link->getAttribute('href'), $link);
+		$self->rdf_triple($link, $id, IANA_NS.'self', $href);
+	}
+	
+	# TODO: "type".
+	
+	if ($link->hasAttribute('source'))
+	{
+		my $fid  = $self->bnode;
+		my $href = $self->uri($link->getAttribute('href'), $link);
+		$self->rdf_triple($link, $id, AWOL_NS.'source', $fid);
+		$self->rdf_triple($link, $fid, RDF_TYPE, AWOL_NS.'Feed');
+		$self->rdf_triple($link, $fid, IANA_NS.'self', $href);
+	}
+	
+	return $id;
+}
+
 sub consume_link
 {
 	my $self    = shift;
@@ -658,6 +772,20 @@ sub consume_link
 		$self->rdf_triple_literal($link, $link_identifier, AWOL_NS.'title', $title, undef, $lang);
 	}
 
+	# thr:count
+	if ($link->hasAttributeNS(THR_NS, 'count'))
+	{
+		my $count = $link->getAttributeNS(THR_NS, 'count');
+		$self->rdf_triple_literal($link, $link_identifier, AX_NS.'count', $count, XSD_NS.'integer');
+	}
+
+	# thr:updated
+	if ($link->hasAttributeNS(THR_NS, 'updated'))
+	{
+		my $u = $link->getAttributeNS(THR_NS, 'updated');
+		$self->rdf_triple_literal($link, $link_identifier, AX_NS.'updated', $u, XSD_NS.'dateTime');
+	}
+
 	return $link_identifier;
 }
 
@@ -700,7 +828,10 @@ sub xmlify
 	my $dom  = shift;
 	my $lang = shift;
 	my $rv;
-	
+
+	$lang = $this->get_node_lang($dom)
+		unless $lang;
+
 	foreach my $kid ($dom->childNodes)
 	{
 		my $fakelang = 0;
@@ -719,6 +850,38 @@ sub xmlify
 		{
 			$kid->removeAttributeNS(XML_XML_NS, 'lang');
 		}
+	}
+	
+	return $rv;
+}
+
+
+sub xmlify_inclusive
+# Function only used internally.
+{
+	my $this = shift;
+	my $dom  = shift;
+	my $lang = shift;
+	my $rv;
+	
+	$lang = $this->get_node_lang($dom)
+		unless $lang;
+	
+	my $fakelang = 0;
+	if (($dom->nodeType == XML_ELEMENT_NODE) && defined $lang)
+	{
+		unless ($dom->hasAttributeNS(XML_XML_NS, 'lang'))
+		{
+			$dom->setAttributeNS(XML_XML_NS, 'lang', $lang);
+			$fakelang++;
+		}
+	}
+	
+	$rv = $dom->toStringEC14N(1);
+	
+	if ($fakelang)
+	{
+		$dom->removeAttributeNS(XML_XML_NS, 'lang');
 	}
 	
 	return $rv;

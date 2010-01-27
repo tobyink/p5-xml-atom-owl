@@ -9,7 +9,7 @@ SYNOPSIS
      $graph  = $parser->graph;
 
 VERSION
-    0.01
+    0.02
 
 PUBLIC METHODS
     $p = XML::Atom::OWL->new($xml, $baseuri, \%options, $storage)

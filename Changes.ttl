@@ -28,6 +28,21 @@ my:v_0_01
 	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.01.tar.gz> ;
 	rdfs:label      "First release"@en .
 
+my:v_0_02
+
+	a               :Version ;
+	dc:issued       "2010-01-??"^^xsd:date ;
+	:revision       "0.02"^^xsd:string ;
+	:file-release   <http://backpan.perl.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.02.tar.gz> ;
+	dcs:changeset [
+		dcs:versus my:v_0_01 ;
+		dc:item
+			[ rdfs:label "Support for Atom Threading Extension"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc4685.txt> ] ,
+			[ rdfs:label "Support for Feed Paging and Archiving"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc5005.txt> ] ,
+			[ rdfs:label "Support for Atom License Extension"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc4946.txt> ] ,
+			[ rdfs:label "Support arbitrary other extensions using XML literals."@en ; a dcs:Addition ]
+		] .
+
 #############################################################
 
 my:project
@@ -46,7 +61,7 @@ my:project
 	:tester         toby:i ;
 	:created        "2010-01-15"^^xsd:date ;
 	:license        <http://dev.perl.org/licenses/> ;
-	:release        my:v_0_01 .
+	:release        my:v_0_01 , my:v_0_02 .
 
 #############################################################
 
