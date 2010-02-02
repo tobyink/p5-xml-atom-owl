@@ -48,7 +48,9 @@ use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
 
 our $VERSION = '0.02';
 
-=head1 PUBLIC METHODS
+=head1 DESCRIPTION
+
+=head2 Constructor
 
 =over 4
 
@@ -69,6 +71,8 @@ future use.
 
 $storage is an RDF::Trine::Storage object. If undef, then a new
 temporary store is created.
+
+=back
 
 =cut
 
@@ -119,6 +123,10 @@ sub new
 
 	return $self;
 }
+
+=head2 Public Methods
+
+=over 4
 
 =item $p->uri
 
