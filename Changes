@@ -11,8 +11,15 @@ Bug tracker:  <http://rt.cpan.org/Dist/Display.html?Queue=XML-Atom-OWL>
 Maintainer:   Toby Inkster <mailto:tobyink@cpan.org>
 
 0.03 [2010-04-28]
+ - (Addition) Ability to automatically fetch <content src> links and
+   include the content as if it had been inline.
+ - Compliance improvements for <content> element.
 
 0.02 [2010-01-23]
+ - (Addition) Support for Feed Paging and Archiving
+ - (Addition) Support for Atom Threading Extension
+ - (Addition) Support for Atom License Extension
+ - (Addition) Support arbitrary other extensions using XML literals.
 
 0.01 [2010-01-18] # First release
 

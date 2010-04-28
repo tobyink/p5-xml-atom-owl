@@ -23,32 +23,32 @@
   </Version>
   <Version rdf:about="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-02">
     <dcs:changeset>
-      <rdf:Description>
-        <dcs:versus rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-01"/>
-        <dc:item>
+      <dcs:ChangeSet>
+        <dcs:item>
           <dcs:Addition>
             <rdfs:label xml:lang="en">Support for Atom Threading Extension</rdfs:label>
             <rdfs:seeAlso rdf:resource="http://www.ietf.org/rfc/rfc4685.txt"/>
           </dcs:Addition>
-        </dc:item>
-        <dc:item>
+        </dcs:item>
+        <dcs:item>
           <dcs:Addition>
             <rdfs:label xml:lang="en">Support for Feed Paging and Archiving</rdfs:label>
             <rdfs:seeAlso rdf:resource="http://www.ietf.org/rfc/rfc5005.txt"/>
           </dcs:Addition>
-        </dc:item>
-        <dc:item>
+        </dcs:item>
+        <dcs:item>
           <dcs:Addition>
             <rdfs:label xml:lang="en">Support for Atom License Extension</rdfs:label>
             <rdfs:seeAlso rdf:resource="http://www.ietf.org/rfc/rfc4946.txt"/>
           </dcs:Addition>
-        </dc:item>
-        <dc:item>
+        </dcs:item>
+        <dcs:item>
           <dcs:Addition>
             <rdfs:label xml:lang="en">Support arbitrary other extensions using XML literals.</rdfs:label>
           </dcs:Addition>
-        </dc:item>
-      </rdf:Description>
+        </dcs:item>
+        <dcs:versus rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-01"/>
+      </dcs:ChangeSet>
     </dcs:changeset>
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-01-23</dc:issued>
     <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.02.tar.gz"/>
@@ -56,19 +56,19 @@
   </Version>
   <Version rdf:about="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-03">
     <dcs:changeset>
-      <rdf:Description>
-        <dcs:versus rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-02"/>
-        <dc:item>
+      <dcs:ChangeSet>
+        <dcs:item>
           <dcs:Addition>
             <rdfs:label xml:lang="en">Ability to automatically fetch &lt;content src&gt; links and include the content as if it had been inline.</rdfs:label>
           </dcs:Addition>
-        </dc:item>
-        <dc:item>
+        </dcs:item>
+        <dcs:item>
           <rdf:Description>
             <rdfs:label xml:lang="en">Compliance improvements for &lt;content&gt; element.</rdfs:label>
           </rdf:Description>
-        </dc:item>
-      </rdf:Description>
+        </dcs:item>
+        <dcs:versus rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-02"/>
+      </dcs:ChangeSet>
     </dcs:changeset>
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-04-28</dc:issued>
     <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.03.tar.gz"/>

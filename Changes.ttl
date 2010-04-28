@@ -35,8 +35,9 @@ my:v_0-02
 	:revision       "0.02"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.02.tar.gz> ;
 	dcs:changeset [
+		a dcs:ChangeSet ;
 		dcs:versus my:v_0-01 ;
-		dc:item
+		dcs:item
 			[ rdfs:label "Support for Atom Threading Extension"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc4685.txt> ] ,
 			[ rdfs:label "Support for Feed Paging and Archiving"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc5005.txt> ] ,
 			[ rdfs:label "Support for Atom License Extension"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc4946.txt> ] ,
@@ -50,8 +51,9 @@ my:v_0-03
 	:revision       "0.03"^^xsd:string ;
 	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.03.tar.gz> ;
 	dcs:changeset [
+		a dcs:ChangeSet ;
 		dcs:versus my:v_0-02 ;
-		dc:item
+		dcs:item
 			[ rdfs:label "Ability to automatically fetch <content src> links and include the content as if it had been inline."@en ; a dcs:Addition ] ,
 			[ rdfs:label "Compliance improvements for <content> element."@en ]
 		] .
