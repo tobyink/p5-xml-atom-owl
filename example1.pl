@@ -20,7 +20,7 @@ my $atom = <<ATOM;
 	 Example Toolkit
   </generator>
   <entry>
-	 <title>Atom draft-07 snapshot</title>
+	 <title property="dc:title" xmlns:dc="http://example.com/dc#">Atom draft-07 snapshot</title>
 	 <link rel="alternate" type="text/html"
 	  href="http://example.org/2005/04/02/atom"/>
 	 <link rel="enclosure" type="audio/mpeg" length="1337"
