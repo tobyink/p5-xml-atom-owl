@@ -24,6 +24,7 @@ use DateTime;
 use Encode qw(encode_utf8);
 use HTTP::Link::Parser;
 use LWP::UserAgent;
+use MIME::Base64 qw(decode_base64);
 use RDF::Trine 0.112;
 use URI;
 use URI::URL;
@@ -42,11 +43,11 @@ use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
 
 =head1 VERSION
 
-0.02
+0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 DESCRIPTION
 
@@ -66,8 +67,10 @@ if it is not well-formed. XML::Atom::OWL does not catch the exception.
 The base URI is used to resolve relative URIs found in the document.
 If $xml was undef, the URI will be fetched using LWP::UserAgent.
 
-Currently no options are defined, but this hashref is reserved for
-future use.
+Currently only one option is defined, 'no_fetch_content_src', a boolean
+indicating whether <content src> URLs should be automatically fetched
+and added to the model as if inline content had been provided. They are
+fetched by default, but it's pretty rare for feeds to include this attribute.
 
 $storage is an RDF::Trine::Storage object. If undef, then a new
 temporary store is created.
@@ -91,7 +94,6 @@ sub new
 		$ua->agent(sprintf('%s/%s ', __PACKAGE__, $VERSION));
 		$ua->default_header("Accept" => "application/atom+xml, application/xml;q=0.1, text/xml;q=0.1");
 		my $response = $ua->get($baseuri);
-		use Data::Dumper;
 		croak "HTTP response not successful\n"
 			unless $response->is_success;
 		croak "Non-Atom HTTP response\n"
@@ -566,8 +568,45 @@ sub consume_content
 		my $link = $self->uri($elem->getAttribute('src'), $elem);
 		$self->rdf_triple($elem, $id, AWOL_NS.'src', $link);
 		
-		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'))
-			if $elem->hasAttribute('type');
+		if ($self->{'options'}->{'no_fetch_content_src'})
+		{
+			$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'))
+				if $elem->hasAttribute('type');
+		}
+		else
+		{
+			my $ua = LWP::UserAgent->new;
+			$ua->agent(sprintf('%s/%s ', __PACKAGE__, $VERSION));
+			if ($elem->hasAttribute('type'))
+			{
+				$ua->default_header("Accept" => $elem->getAttribute('type').", */*;q=0.1");
+			}
+			else
+			{
+				$ua->default_header("Accept" => "application/xhtml+xml, text/html, text/plain, */*;q=0.1");
+			}
+			my $response = $ua->get($self->uri($elem->getAttribute('src'), $elem));
+			if ($response->is_success)
+			{
+				$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $response->decoded_content);
+				if ($response->content_type)
+					{ $self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $response->content_type); }
+				elsif ($elem->hasAttribute('type'))
+					{ $self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type')); }
+			}
+			else
+			{
+				$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'))
+					if $elem->hasAttribute('type');
+			}
+		}
+	}
+	
+	elsif (lc $elem->getAttribute('type') eq 'text' or !$elem->hasAttribute('type'))
+	{
+		my $cnt = $elem->textContent;
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, undef, $lang);
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', 'text/plain');
 	}
 	
 	elsif (lc $elem->getAttribute('type') eq 'xhtml')
@@ -584,31 +623,29 @@ sub consume_content
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', 'text/html');
 	}
 
-	elsif ($elem->getAttribute('type') =~ m'^[^/]+/[^/]+$' 
-	or	    $elem->getChildrenByTagName('*'))
+	elsif ($elem->getAttribute('type') =~ m'([\+\/]xml)$'i)
 	{
-		if ($elem->getChildrenByTagName('*'))
-		{
-			my $cnt = $self->xmlify($elem, $lang);
-			$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, RDF_NS.'XMLLiteral');			
-		}
-		else
-		{
-			my $cnt = $elem->textContent;
-			$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, undef, $lang);
-		}
-		
+		my $cnt = $self->xmlify($elem, $lang);
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, RDF_NS.'XMLLiteral');			
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'))
 			if $elem->hasAttribute('type');
 	}
-
-	else
+	
+	elsif ($elem->getAttribute('type') =~ m'^text\/'i)
 	{
 		my $cnt = $elem->textContent;
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, undef, $lang);
-		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', 'text/plain');
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'))
+			if $elem->hasAttribute('type');
 	}
 	
+	elsif ($elem->hasAttribute('type'))
+	{
+		my $cnt = $elem->textContent;
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', decode_base64($cnt));
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'));
+	}
+
 	return $id;
 }
 

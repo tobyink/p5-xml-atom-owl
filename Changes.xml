@@ -3,7 +3,7 @@
    xmlns:dc="http://purl.org/dc/terms/"
    xmlns:dcs="http://ontologi.es/doap-changeset#"
    xmlns:foaf="http://xmlns.com/foaf/0.1/"
-   xmlns:my="http://search.cpan.org/dist/XML-Atom-OWL/#"
+   xmlns:my="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
    xmlns:toby="http://tobyinkster.co.uk/#"
@@ -12,19 +12,19 @@
   <rdf:Description rdf:about="file:///home/tai/src/perlmods/XML-Atom-OWL/Changes.ttl">
     <dc:creator rdf:resource="http://tobyinkster.co.uk/#i"/>
     <dc:description xml:lang="en">Revision history for Perl extension XML::Atom::OWL.</dc:description>
-    <dc:subject rdf:resource="http://search.cpan.org/dist/XML-Atom-OWL/#project"/>
+    <dc:subject rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/project"/>
     <dc:title>Changes</dc:title>
   </rdf:Description>
-  <Version rdf:about="http://search.cpan.org/dist/XML-Atom-OWL/#v_0_01">
+  <Version rdf:about="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-01">
     <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-01-18</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.01.tar.gz"/>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.01.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.01</revision>
     <rdfs:label xml:lang="en">First release</rdfs:label>
   </Version>
-  <Version rdf:about="http://search.cpan.org/dist/XML-Atom-OWL/#v_0_02">
+  <Version rdf:about="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-02">
     <dcs:changeset>
       <rdf:Description>
-        <dcs:versus rdf:resource="http://search.cpan.org/dist/XML-Atom-OWL/#v_0_01"/>
+        <dcs:versus rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-01"/>
         <dc:item>
           <dcs:Addition>
             <rdfs:label xml:lang="en">Support for Atom Threading Extension</rdfs:label>
@@ -50,11 +50,31 @@
         </dc:item>
       </rdf:Description>
     </dcs:changeset>
-    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-01-??</dc:issued>
-    <file-release rdf:resource="http://backpan.perl.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.02.tar.gz"/>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-01-23</dc:issued>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.02.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.02</revision>
   </Version>
-  <Project rdf:about="http://search.cpan.org/dist/XML-Atom-OWL/#project">
+  <Version rdf:about="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-03">
+    <dcs:changeset>
+      <rdf:Description>
+        <dcs:versus rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-02"/>
+        <dc:item>
+          <dcs:Addition>
+            <rdfs:label xml:lang="en">Ability to automatically fetch &lt;content src&gt; links and include the content as if it had been inline.</rdfs:label>
+          </dcs:Addition>
+        </dc:item>
+        <dc:item>
+          <rdf:Description>
+            <rdfs:label xml:lang="en">Compliance improvements for &lt;content&gt; element.</rdfs:label>
+          </rdf:Description>
+        </dc:item>
+      </rdf:Description>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-04-28</dc:issued>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.03.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.03</revision>
+  </Version>
+  <Project rdf:about="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/project">
     <bug-database rdf:resource="http://rt.cpan.org/Dist/Display.html?Queue=XML-Atom-OWL"/>
     <created rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-01-15</created>
     <developer rdf:resource="http://tobyinkster.co.uk/#i"/>
@@ -65,18 +85,21 @@
     <maintainer rdf:resource="http://tobyinkster.co.uk/#i"/>
     <name>XML-Atom-OWL</name>
     <programming-language>Perl</programming-language>
-    <release rdf:resource="http://search.cpan.org/dist/XML-Atom-OWL/#v_0_01"/>
-    <release rdf:resource="http://search.cpan.org/dist/XML-Atom-OWL/#v_0_02"/>
+    <release rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-01"/>
+    <release rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-02"/>
+    <release rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-03"/>
     <repository>
       <SVNRepository>
         <browse rdf:resource="http://goddamn.co.uk/viewvc/perlmods/XML-Atom-OWL/"/>
       </SVNRepository>
     </repository>
-    <shortdesc xml:lang="en">Parse an Atom file into RDF</shortdesc>
+    <shortdesc xml:lang="en">parse an Atom file into RDF</shortdesc>
     <tester rdf:resource="http://tobyinkster.co.uk/#i"/>
   </Project>
   <foaf:Person rdf:about="http://tobyinkster.co.uk/#i">
+    <ns1:sameAs xmlns:ns1="http://www.w3.org/2002/07/owl#" rdf:resource="http://purl.org/NET/cpan-uri/person/tobyink"/>
     <foaf:homepage rdf:resource="http://tobyinkster.co.uk/"/>
+    <foaf:mbox rdf:resource="mailto:tobyink@cpan.org"/>
     <foaf:name>Toby Inkster</foaf:name>
     <foaf:page rdf:resource="http://search.cpan.org/~tobyink/"/>
   </foaf:Person>

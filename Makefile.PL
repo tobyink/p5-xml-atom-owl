@@ -21,6 +21,7 @@ requires            'DateTime'           => 0;
 requires            'Encode'             => 0;
 requires            'HTTP::Link::Parser' => '0.04';
 requires            'LWP::UserAgent'     => 0;
+requires            'MIME::Base64'       => 0;
 requires            'RDF::Trine'         => '0.112';
 requires            'URI'                => '1.30';
 requires            'URI::URL'           => 0;

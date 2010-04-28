@@ -9,9 +9,10 @@ SYNOPSIS
      $graph  = $parser->graph;
 
 VERSION
-    0.02
+    0.03
 
-PUBLIC METHODS
+DESCRIPTION
+  Constructor
     $p = XML::Atom::OWL->new($xml, $baseuri, \%options, $storage)
         This method creates a new XML::Atom::OWL object and returns it.
 
@@ -23,12 +24,16 @@ PUBLIC METHODS
         The base URI is used to resolve relative URIs found in the document.
         If $xml was undef, the URI will be fetched using LWP::UserAgent.
 
-        Currently no options are defined, but this hashref is reserved for
-        future use.
+        Currently only one option is defined, 'no_fetch_content_src', a
+        boolean indicating whether <content src> URLs should be
+        automatically fetched and added to the model as if inline content
+        had been provided. They are fetched by default, but it's pretty rare
+        for feeds to include this attribute.
 
         $storage is an RDF::Trine::Storage object. If undef, then a new
         temporary store is created.
 
+  Public Methods
     $p->uri
         Returns the base URI of the document being parsed. This will usually
         be the same as the base URI provided to the constructor.

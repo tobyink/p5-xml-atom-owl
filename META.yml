@@ -8,7 +8,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.91'
+generated_by: 'Module::Install version 0.95'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -24,6 +24,7 @@ requires:
   Encode: 0
   HTTP::Link::Parser: 0.04
   LWP::UserAgent: 0
+  MIME::Base64: 0
   RDF::Trine: 0.112
   URI: 1.30
   URI::URL: 0
@@ -34,4 +35,4 @@ resources:
   homepage: http://search.cpan.org/dist/XML-Atom-OWL/
   license: http://dev.perl.org/licenses/
   repository: http://goddamn.co.uk/viewvc/perlmods/XML-Atom-OWL/
-version: 0.02
+version: 0.03
