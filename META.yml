@@ -1,5 +1,5 @@
 ---
-abstract: 'Parse an Atom file into RDF'
+abstract: 'parse an Atom file into RDF'
 author:
   - 'Toby Inkster <tobyink@cpan.org>'
 build_requires:
@@ -35,4 +35,4 @@ resources:
   homepage: http://search.cpan.org/dist/XML-Atom-OWL/
   license: http://dev.perl.org/licenses/
   repository: http://goddamn.co.uk/viewvc/perlmods/XML-Atom-OWL/
-version: 0.03
+version: 0.04

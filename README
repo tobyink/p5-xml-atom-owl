@@ -1,5 +1,5 @@
 NAME
-    XML::Atom::OWL - Parse an Atom file into RDF
+    XML::Atom::OWL - parse an Atom file into RDF
 
 SYNOPSIS
      use XML::Atom::OWL;
@@ -9,7 +9,7 @@ SYNOPSIS
      $graph  = $parser->graph;
 
 VERSION
-    0.03
+    0.04
 
 DESCRIPTION
   Constructor

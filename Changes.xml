@@ -74,6 +74,22 @@
     <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.03.tar.gz"/>
     <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.03</revision>
   </Version>
+  <Version rdf:about="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-04">
+    <dcs:changeset>
+      <dcs:ChangeSet>
+        <dcs:item>
+          <rdf:Description>
+            <rdfs:comment xml:lang="en">Useful for XML-Atom-Microformats.</rdfs:comment>
+            <rdfs:label xml:lang="en">Keep base URI and lang information for &lt;content&gt; element.</rdfs:label>
+          </rdf:Description>
+        </dcs:item>
+        <dcs:versus rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-03"/>
+      </dcs:ChangeSet>
+    </dcs:changeset>
+    <dc:issued rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-04-29</dc:issued>
+    <file-release rdf:resource="http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.04.tar.gz"/>
+    <revision rdf:datatype="http://www.w3.org/2001/XMLSchema#string">0.04</revision>
+  </Version>
   <Project rdf:about="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/project">
     <bug-database rdf:resource="http://rt.cpan.org/Dist/Display.html?Queue=XML-Atom-OWL"/>
     <created rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2010-01-15</created>
@@ -88,6 +104,7 @@
     <release rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-01"/>
     <release rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-02"/>
     <release rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-03"/>
+    <release rdf:resource="http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/v_0-04"/>
     <repository>
       <SVNRepository>
         <browse rdf:resource="http://goddamn.co.uk/viewvc/perlmods/XML-Atom-OWL/"/>

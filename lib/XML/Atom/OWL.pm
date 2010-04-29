@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-XML::Atom::OWL - Parse an Atom file into RDF
+XML::Atom::OWL - parse an Atom file into RDF
 
 =head1 SYNOPSIS
 
@@ -43,11 +43,11 @@ use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
 
 =head1 VERSION
 
-0.03
+0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 DESCRIPTION
 
@@ -562,6 +562,7 @@ sub consume_content
 	$self->rdf_triple($elem, $id, RDF_TYPE, AWOL_NS.'Content');
 	
 	my $lang = $self->get_node_lang($elem);
+	my $base = $self->get_node_base($elem);
 	
 	if ($elem->hasAttribute('src'))
 	{
@@ -589,10 +590,17 @@ sub consume_content
 			if ($response->is_success)
 			{
 				$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $response->decoded_content);
+				
 				if ($response->content_type)
 					{ $self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $response->content_type); }
 				elsif ($elem->hasAttribute('type'))
 					{ $self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type')); }
+
+				if ($response->content_language =~ /^\s*([a-z]{2,3})\b/i)
+					{ $self->rdf_triple_literal($elem, $id, AWOL_NS.'lang', lc $1, XSD_NS.'language'); }
+
+				if ($response->base)
+					{ $self->rdf_triple($elem, $id, AWOL_NS.'base', $response->base); }
 			}
 			else
 			{
@@ -607,6 +615,8 @@ sub consume_content
 		my $cnt = $elem->textContent;
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, undef, $lang);
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', 'text/plain');
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'lang', $lang, XSD_NS.'language') if $lang;
+		$self->rdf_triple($elem, $id, AWOL_NS.'base', $base) if $base;
 	}
 	
 	elsif (lc $elem->getAttribute('type') eq 'xhtml')
@@ -614,6 +624,8 @@ sub consume_content
 		my $cnt = $self->xmlify($elem, $lang);
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, RDF_NS.'XMLLiteral');
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', 'application/xhtml+xml');
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'lang', $lang, XSD_NS.'language') if $lang;
+		$self->rdf_triple($elem, $id, AWOL_NS.'base', $base) if $base;
 	}
 
 	elsif (lc $elem->getAttribute('type') eq 'html')
@@ -621,22 +633,26 @@ sub consume_content
 		my $cnt = $elem->textContent;
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, undef, $lang);
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', 'text/html');
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'lang', $lang, XSD_NS.'language') if $lang;
+		$self->rdf_triple($elem, $id, AWOL_NS.'base', $base) if $base;
 	}
 
 	elsif ($elem->getAttribute('type') =~ m'([\+\/]xml)$'i)
 	{
 		my $cnt = $self->xmlify($elem, $lang);
-		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, RDF_NS.'XMLLiteral');			
-		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'))
-			if $elem->hasAttribute('type');
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, RDF_NS.'XMLLiteral');
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'));
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'lang', $lang, XSD_NS.'language') if $lang;
+		$self->rdf_triple($elem, $id, AWOL_NS.'base', $base) if $base;
 	}
 	
 	elsif ($elem->getAttribute('type') =~ m'^text\/'i)
 	{
 		my $cnt = $elem->textContent;
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', $cnt, undef, $lang);
-		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'))
-			if $elem->hasAttribute('type');
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'));
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'lang', $lang, XSD_NS.'language') if $lang;
+		$self->rdf_triple($elem, $id, AWOL_NS.'base', $base) if $base;
 	}
 	
 	elsif ($elem->hasAttribute('type'))
@@ -644,6 +660,8 @@ sub consume_content
 		my $cnt = $elem->textContent;
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'body', decode_base64($cnt));
 		$self->rdf_triple_literal($elem, $id, AWOL_NS.'type', $elem->getAttribute('type'));
+		$self->rdf_triple_literal($elem, $id, AWOL_NS.'lang', $lang, XSD_NS.'language') if $lang;
+		$self->rdf_triple($elem, $id, AWOL_NS.'base', $base) if $base;
 	}
 
 	return $id;

@@ -58,6 +58,19 @@ my:v_0-03
 			[ rdfs:label "Compliance improvements for <content> element."@en ]
 		] .
 
+my:v_0-04
+
+	a               :Version ;
+	dc:issued       "2010-04-29"^^xsd:date ;
+	:revision       "0.04"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.04.tar.gz> ;
+	dcs:changeset [
+		a dcs:ChangeSet ;
+		dcs:versus my:v_0-03 ;
+		dcs:item
+			[ rdfs:label "Keep base URI and lang information for <content> element."@en ; rdfs:comment "Useful for XML-Atom-Microformats."@en ]
+		] .
+
 #############################################################
 
 my:project
@@ -76,7 +89,7 @@ my:project
 	:tester         toby:i ;
 	:created        "2010-01-15"^^xsd:date ;
 	:license        <http://dev.perl.org/licenses/> ;
-	:release        my:v_0-01 , my:v_0-02 , my:v_0-03 .
+	:release        my:v_0-01 , my:v_0-02 , my:v_0-03 , my:v_0-04 .
 
 #############################################################
 
