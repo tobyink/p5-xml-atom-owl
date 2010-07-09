@@ -43,11 +43,11 @@ use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
 
 =head1 VERSION
 
-0.04
+0.100
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.100';
 
 =head1 DESCRIPTION
 
@@ -55,7 +55,7 @@ our $VERSION = '0.04';
 
 =over 4
 
-=item $p = XML::Atom::OWL->new($xml, $baseuri, \%options, $storage)
+=item C<< $p = XML::Atom::OWL->new($xml, $baseuri, \%options, $storage) >>
 
 This method creates a new XML::Atom::OWL object and returns it.
 
@@ -130,7 +130,7 @@ sub new
 
 =over 4
 
-=item $p->uri
+=item C<<$p->uri >>
 
 Returns the base URI of the document being parsed. This will usually be the
 same as the base URI provided to the constructor.
@@ -184,7 +184,7 @@ sub uri
 	return $rv;
 }
 
-=item $p->dom
+=item C<< $p->dom >>
 
 Returns the parsed XML::LibXML::Document.
 
@@ -196,7 +196,54 @@ sub dom
 	return $this->{DOM};
 }
 
-=item $p->set_callbacks(\%callbacks)
+
+=item C<< $p->graph >>
+
+This method will return an RDF::Trine::Model object with all
+statements of the full graph.
+
+This method automatically calls C<consume>.
+
+=cut
+
+sub graph
+{
+	my $this = shift;
+	$this->consume;
+	return $this->{RESULTS};
+}
+
+sub graphs
+{
+	my $this = shift;
+	$this->consume;
+	return { $this->{'baseuri'} => $this->{RESULTS} };
+}
+
+=item C<< $p->root_identifier >>
+
+Returns the blank node or URI for the root element of the Atom
+document as an RDF::Trine::Node
+
+Calls C<consume> automatically.
+
+=cut
+
+sub root_identifier
+{
+	my $self = shift;
+	$self->consume;
+	if ($self->{'root_identifier'} =~ /^_:(.*)/)
+	{
+		return RDF::Trine::Node::Blank->new($1);
+	}
+	else
+	{
+		return RDF::Trine::Node::Resource->new($self->{'root_identifier'});
+	}
+}
+
+=item C<< $p->set_callbacks(\%callbacks) >>
 
 Set callback functions for the parser to call on certain events. These are only necessary if
 you want to do something especially unusual.
@@ -234,7 +281,7 @@ sub set_callbacks
 	return $this;
 }
 
-=item $p->consume
+=item C<< $p->consume >>
 
 The document is parsed. Triples extracted from the document are passed
 to the callbacks as each one is found; triples are made available in the
@@ -246,21 +293,28 @@ abbreviate several of XML::Atom::OWL's functions:
   my $iterator = XML::Atom::OWL->new(undef, $uri)
                  ->consume->graph->as_stream;
 
+You probably only need to call this explicitly if you're using callbacks.
+
 =cut
 
 sub consume
 {
 	my $self = shift;
+
+	return $self if $self->{'comsumed'};
+
 	my $root = $self->dom->documentElement;
 	
 	if ($root->namespaceURI eq ATOM_NS and $root->localname eq 'feed')
 	{
-		$self->consume_feed($root);
+		$self->{'root_identifier'} = $self->consume_feed($root);
 	}
 	elsif ($root->namespaceURI eq ATOM_NS and $root->localname eq 'entry')
 	{
-		$self->consume_entry($root);
+		$self->{'root_identifier'} = $self->consume_entry($root);
 	}
+	
+	$self->{'comsumed'}++;
 	
 	return $self;
 }
@@ -996,29 +1050,6 @@ sub get_node_base
 	}
 	
 	return $rv->abs->as_string;
-}
-
-
-=item $p->graph() 
-
-This method will return an RDF::Trine::Model object with all
-statements of the full graph.
-
-It makes sense to call C<consume> before calling C<graph>. Otherwise
-you'll just get an empty graph.
-
-=cut
-
-sub graph
-{
-	my $this = shift;
-	return $this->{RESULTS};
-}
-
-sub graphs
-{
-	my $this = shift;
-	return { $this->{'baseuri'} => $this->{RESULTS} };
 }
 
 sub rdf_triple
