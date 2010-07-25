@@ -9,7 +9,6 @@ XML::Atom::OWL - parse an Atom file into RDF
  use XML::Atom::OWL;
  
  $parser = XML::Atom::OWL->new($xml, $baseuri);
- $parser->consume;
  $graph  = $parser->graph;
 
 =cut
@@ -17,7 +16,7 @@ XML::Atom::OWL - parse an Atom file into RDF
 package XML::Atom::OWL;
 
 use 5.008;
-use strict;
+use common::sense;
 
 use Carp;
 use DateTime;
@@ -47,7 +46,7 @@ use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
 
 =cut
 
-our $VERSION = '0.100';
+our $VERSION = '0.101';
 
 =head1 DESCRIPTION
 

@@ -37,11 +37,10 @@ my:v_0-02
 	dcs:changeset [
 		a dcs:ChangeSet ;
 		dcs:versus my:v_0-01 ;
-		dcs:item
-			[ rdfs:label "Support for Atom Threading Extension"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc4685.txt> ] ,
-			[ rdfs:label "Support for Feed Paging and Archiving"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc5005.txt> ] ,
-			[ rdfs:label "Support for Atom License Extension"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc4946.txt> ] ,
-			[ rdfs:label "Support arbitrary other extensions using XML literals."@en ; a dcs:Addition ]
+		dcs:item   [ rdfs:label "Support for Atom Threading Extension"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc4685.txt> ] ;
+		dcs:item   [ rdfs:label "Support for Feed Paging and Archiving"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc5005.txt> ] ;
+		dcs:item   [ rdfs:label "Support for Atom License Extension"@en ; a dcs:Addition ; rdfs:seeAlso <http://www.ietf.org/rfc/rfc4946.txt> ] ;
+		dcs:item   [ rdfs:label "Support arbitrary other extensions using XML literals."@en ; a dcs:Addition ]
 		] .
 
 my:v_0-03
@@ -53,9 +52,8 @@ my:v_0-03
 	dcs:changeset [
 		a dcs:ChangeSet ;
 		dcs:versus my:v_0-02 ;
-		dcs:item
-			[ rdfs:label "Ability to automatically fetch <content src> links and include the content as if it had been inline."@en ; a dcs:Addition ] ,
-			[ rdfs:label "Compliance improvements for <content> element."@en ]
+		dcs:item   [ rdfs:label "Ability to automatically fetch <content src> links and include the content as if it had been inline."@en ; a dcs:Addition ] ;
+		dcs:item   [ rdfs:label "Compliance improvements for <content> element."@en ]
 		] .
 
 my:v_0-04
@@ -67,8 +65,32 @@ my:v_0-04
 	dcs:changeset [
 		a dcs:ChangeSet ;
 		dcs:versus my:v_0-03 ;
-		dcs:item
-			[ rdfs:label "Keep base URI and lang information for <content> element."@en ; rdfs:comment "Useful for XML-Atom-Microformats."@en ]
+		dcs:item   [ rdfs:label "Keep base URI and lang information for <content> element."@en ; rdfs:comment "Useful for XML-Atom-Microformats."@en ]
+		] .
+
+my:v_0-100
+
+	a               :Version ;
+	dc:issued       "2010-07-19"^^xsd:date ;
+	:revision       "0.100"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.100.tar.gz> ;
+	dcs:changeset [
+		a dcs:ChangeSet ;
+		dcs:versus my:v_0-04 ;
+		dcs:item   [ rdfs:label "Automatically call 'consume' as required."@en ] ;
+		dcs:item   [ rdfs:label "Switched to using common::sense instead of strict, but didn't note change in Makefile.PL/META.yml"@en ; a dcs:Regression ]
+		] .
+
+my:v_0-101
+
+	a               :Version ;
+	dc:issued       "2010-07-19"^^xsd:date ;
+	:revision       "0.101"^^xsd:string ;
+	:file-release   <http://backpan.cpan.org/authors/id/T/TO/TOBYINK/XML-Atom-OWL-0.101.tar.gz> ;
+	dcs:changeset [
+		a dcs:ChangeSet ;
+		dcs:versus my:v_0-100 ;
+		dcs:item   [ rdfs:label "Fix packaging error; Makefile.PL and META.yml didn't note dependency on common::sense."@en ; a dcs:Bugfix ]
 		] .
 
 #############################################################
@@ -89,7 +111,8 @@ my:project
 	:tester         toby:i ;
 	:created        "2010-01-15"^^xsd:date ;
 	:license        <http://dev.perl.org/licenses/> ;
-	:release        my:v_0-01 , my:v_0-02 , my:v_0-03 , my:v_0-04 .
+	:release        my:v_0-01 , my:v_0-02 , my:v_0-03 , my:v_0-04 ,
+	                my:v_0-100 , my:v_0-101 .
 
 #############################################################
 

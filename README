@@ -5,15 +5,14 @@ SYNOPSIS
      use XML::Atom::OWL;
  
      $parser = XML::Atom::OWL->new($xml, $baseuri);
-     $parser->consume;
      $graph  = $parser->graph;
 
 VERSION
-    0.04
+    0.100
 
 DESCRIPTION
   Constructor
-    $p = XML::Atom::OWL->new($xml, $baseuri, \%options, $storage)
+    "$p = XML::Atom::OWL->new($xml, $baseuri, \%options, $storage)"
         This method creates a new XML::Atom::OWL object and returns it.
 
         The $xml variable may contain an XML (Atom) string, an
@@ -34,7 +33,7 @@ DESCRIPTION
         temporary store is created.
 
   Public Methods
-    $p->uri
+    "<$p-"uri >>
         Returns the base URI of the document being parsed. This will usually
         be the same as the base URI provided to the constructor.
 
@@ -47,10 +46,22 @@ DESCRIPTION
         consequence of passing a relative URI consisting of a zero-length
         string, it in fact makes sense.
 
-    $p->dom
+    "$p->dom"
         Returns the parsed XML::LibXML::Document.
 
-    $p->set_callbacks(\%callbacks)
+    "$p->graph"
+        This method will return an RDF::Trine::Model object with all
+        statements of the full graph.
+
+        This method automatically calls "consume".
+
+    "$p->root_identifier"
+        Returns the blank node or URI for the root element of the Atom
+        document as an RDF::Trine::Node
+
+        Calls "consume" automatically.
+
+    "$p->set_callbacks(\%callbacks)"
         Set callback functions for the parser to call on certain events.
         These are only necessary if you want to do something especially
         unusual.
@@ -65,7 +76,7 @@ DESCRIPTION
         "set_callbacks" must be used *before* "consume". "set_callbacks"
         itself returns a reference to the parser object itself.
 
-    $p->consume
+    "$p->consume"
         The document is parsed. Triples extracted from the document are
         passed to the callbacks as each one is found; triples are made
         available in the model returned by the "graph" method.
@@ -76,12 +87,8 @@ DESCRIPTION
           my $iterator = XML::Atom::OWL->new(undef, $uri)
                          ->consume->graph->as_stream;
 
-    $p->graph()
-        This method will return an RDF::Trine::Model object with all
-        statements of the full graph.
-
-        It makes sense to call "consume" before calling "graph". Otherwise
-        you'll just get an empty graph.
+        You probably only need to call this explicitly if you're using
+        callbacks.
 
 CALLBACKS
     Several callback functions are provided. These may be set using the

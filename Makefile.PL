@@ -14,15 +14,15 @@ readme_from         $fn;
 author              'Toby Inkster <tobyink@cpan.org>';
 license             'perl';
 
-test_requires       'Test::More' => '0.61';
-
 requires            'Carp'               => '1.00';
+requires            'common::sense'      => 0;
 requires            'DateTime'           => 0;
 requires            'Encode'             => 0;
 requires            'HTTP::Link::Parser' => '0.04';
 requires            'LWP::UserAgent'     => 0;
 requires            'MIME::Base64'       => 0;
 requires            'RDF::Trine'         => '0.112';
+test_requires       'Test::More'         => '0.61';
 requires            'URI'                => '1.30';
 requires            'URI::URL'           => 0;
 requires            'XML::LibXML'        => '1.60';
