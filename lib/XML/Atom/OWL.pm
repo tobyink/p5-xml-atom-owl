@@ -46,7 +46,7 @@ use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
 
 =cut
 
-our $VERSION = '0.101';
+our $VERSION = '0.102';
 
 =head1 DESCRIPTION
 

@@ -36,4 +36,5 @@ resources:
   homepage: http://search.cpan.org/dist/XML-Atom-OWL/
   license: http://dev.perl.org/licenses/
   repository: http://goddamn.co.uk/viewvc/perlmods/XML-Atom-OWL/
-version: 0.101
+version: 0.102
+
