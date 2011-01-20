@@ -29,22 +29,16 @@ use URI;
 use URI::URL;
 use XML::LibXML qw(:all);
 
-use constant ATOM_NS =>  'http://www.w3.org/2005/Atom';
-use constant AWOL_NS =>  'http://bblfish.net/work/atom-owl/2006-06-06/#';
-use constant AX_NS =>    'http://buzzword.org.uk/rdf/atomix#';
-use constant FH_NS =>    'http://purl.org/syndication/history/1.0';
-use constant FOAF_NS =>  'http://xmlns.com/foaf/0.1/';
-use constant IANA_NS =>  'http://www.iana.org/assignments/relation/';
-use constant RDF_NS =>   'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+use constant ATOM_NS  => 'http://www.w3.org/2005/Atom';
+use constant AWOL_NS  => 'http://bblfish.net/work/atom-owl/2006-06-06/#';
+use constant AX_NS    => 'http://buzzword.org.uk/rdf/atomix#';
+use constant FH_NS    => 'http://purl.org/syndication/history/1.0';
+use constant FOAF_NS  => 'http://xmlns.com/foaf/0.1/';
+use constant IANA_NS  => 'http://www.iana.org/assignments/relation/';
+use constant RDF_NS   => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 use constant RDF_TYPE => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
-use constant THR_NS =>   'http://purl.org/syndication/thread/1.0';
-use constant XSD_NS =>   'http://www.w3.org/2001/XMLSchema#';
-
-=head1 VERSION
-
-0.100
-
-=cut
+use constant THR_NS   => 'http://purl.org/syndication/thread/1.0';
+use constant XSD_NS   => 'http://www.w3.org/2001/XMLSchema#';
 
 our $VERSION = '0.102';
 
