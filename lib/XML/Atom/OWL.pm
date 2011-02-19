@@ -48,17 +48,16 @@ our $VERSION = '0.102';
 
 =over 4
 
-=item C<< $p = XML::Atom::OWL->new($xml, $baseuri, \%options, $storage) >>
+=item C<< XML::Atom::OWL->new($xml, $baseuri, \%options, $storage) >>
 
 This method creates a new XML::Atom::OWL object and returns it.
 
-The $xml variable may contain an XML (Atom) string, an
-XML::LibXML::Document object, or undef. If a string, the document
-is parsed using XML::LibXML::Parser, which will throw an exception
-if it is not well-formed. XML::Atom::OWL does not catch the exception.
+The $xml variable may contain an XML (Atom) string, or an
+L<XML::LibXML::Document> object. If a string, the document is parsed
+using L<XML::LibXML>, which will throw an exception if it is not
+well-formed. XML::Atom::OWL does not catch the exception.
 
 The base URI is used to resolve relative URIs found in the document.
-If $xml was undef, the URI will be fetched using LWP::UserAgent.
 
 Currently only one option is defined, 'no_fetch_content_src', a boolean
 indicating whether <content src> URLs should be automatically fetched
@@ -123,7 +122,7 @@ sub new
 
 =over 4
 
-=item C<<$p->uri >>
+=item C<< uri >>
 
 Returns the base URI of the document being parsed. This will usually be the
 same as the base URI provided to the constructor.
@@ -177,7 +176,7 @@ sub uri
 	return $rv;
 }
 
-=item C<< $p->dom >>
+=item C<< dom >>
 
 Returns the parsed XML::LibXML::Document.
 
@@ -190,7 +189,7 @@ sub dom
 }
 
 
-=item C<< $p->graph >>
+=item C<< graph >>
 
 This method will return an RDF::Trine::Model object with all
 statements of the full graph.
@@ -213,7 +212,7 @@ sub graphs
 	return { $this->{'baseuri'} => $this->{RESULTS} };
 }
 
-=item C<< $p->root_identifier >>
+=item C<< root_identifier >>
 
 Returns the blank node or URI for the root element of the Atom
 document as an RDF::Trine::Node
@@ -236,7 +235,7 @@ sub root_identifier
 	}
 }
 
-=item C<< $p->set_callbacks(\%callbacks) >>
+=item C<< set_callbacks(\%callbacks) >>
 
 Set callback functions for the parser to call on certain events. These are only necessary if
 you want to do something especially unusual.
@@ -274,7 +273,7 @@ sub set_callbacks
 	return $this;
 }
 
-=item C<< $p->consume >>
+=item C<< consume >>
 
 The document is parsed. Triples extracted from the document are passed
 to the callbacks as each one is found; triples are made available in the
@@ -1406,7 +1405,7 @@ Toby Inkster E<lt>tobyink@cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright 2010 Toby Inkster
+Copyright 2010-2011 Toby Inkster
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
