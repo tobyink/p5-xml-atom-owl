@@ -7,21 +7,19 @@ SYNOPSIS
      $parser = XML::Atom::OWL->new($xml, $baseuri);
      $graph  = $parser->graph;
 
-VERSION
-    0.100
-
 DESCRIPTION
+    This has a pretty similar interface to RDF::RDFa::Parser.
+
   Constructor
-    "$p = XML::Atom::OWL->new($xml, $baseuri, \%options, $storage)"
+    "new($xml, $baseuri, \%options, $storage)"
         This method creates a new XML::Atom::OWL object and returns it.
 
-        The $xml variable may contain an XML (Atom) string, an
-        XML::LibXML::Document object, or undef. If a string, the document is
-        parsed using XML::LibXML::Parser, which will throw an exception if
-        it is not well-formed. XML::Atom::OWL does not catch the exception.
+        The $xml variable may contain an XML (Atom) string, or an
+        XML::LibXML::Document object. If a string, the document is parsed
+        using XML::LibXML, which will throw an exception if it is not
+        well-formed. XML::Atom::OWL does not catch the exception.
 
         The base URI is used to resolve relative URIs found in the document.
-        If $xml was undef, the URI will be fetched using LWP::UserAgent.
 
         Currently only one option is defined, 'no_fetch_content_src', a
         boolean indicating whether <content src> URLs should be
@@ -33,7 +31,7 @@ DESCRIPTION
         temporary store is created.
 
   Public Methods
-    "<$p-"uri >>
+    "uri"
         Returns the base URI of the document being parsed. This will usually
         be the same as the base URI provided to the constructor.
 
@@ -46,22 +44,22 @@ DESCRIPTION
         consequence of passing a relative URI consisting of a zero-length
         string, it in fact makes sense.
 
-    "$p->dom"
+    "dom"
         Returns the parsed XML::LibXML::Document.
 
-    "$p->graph"
+    "graph"
         This method will return an RDF::Trine::Model object with all
         statements of the full graph.
 
         This method automatically calls "consume".
 
-    "$p->root_identifier"
+    "root_identifier"
         Returns the blank node or URI for the root element of the Atom
         document as an RDF::Trine::Node
 
         Calls "consume" automatically.
 
-    "$p->set_callbacks(\%callbacks)"
+    "set_callbacks(\%callbacks)"
         Set callback functions for the parser to call on certain events.
         These are only necessary if you want to do something especially
         unusual.
@@ -76,7 +74,7 @@ DESCRIPTION
         "set_callbacks" must be used *before* "consume". "set_callbacks"
         itself returns a reference to the parser object itself.
 
-    "$p->consume"
+    "consume"
         The document is parsed. Triples extracted from the document are
         passed to the callbacks as each one is found; triples are made
         available in the model returned by the "graph" method.
@@ -164,7 +162,7 @@ BUGS
     Please report any bugs to <http://rt.cpan.org/>.
 
 SEE ALSO
-    RDF::Trine, RDF::RDFa::Parser.
+    RDF::Trine, XML::Atom::FromOWL.
 
     <http://www.perlrdf.org/>.
 
@@ -172,7 +170,7 @@ AUTHOR
     Toby Inkster <tobyink@cpan.org>.
 
 COPYRIGHT
-    Copyright 2010 Toby Inkster
+    Copyright 2010-2011 Toby Inkster
 
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.

@@ -23,6 +23,7 @@ requires            'LWP::UserAgent'     => 0;
 requires            'MIME::Base64'       => 0;
 requires            'RDF::Trine'         => '0.112';
 test_requires       'Test::More'         => '0.61';
+requires            'Scalar::Util'       => 0;
 requires            'URI'                => '1.30';
 requires            'URI::URL'           => 0;
 requires            'XML::LibXML'        => '1.60';
@@ -38,7 +39,6 @@ resources(
 write_doap_changes;
 write_doap_changes_xml;
 
-include 'Test::Signature';
 auto_install;
 WriteAll(
 	'meta' => 1,

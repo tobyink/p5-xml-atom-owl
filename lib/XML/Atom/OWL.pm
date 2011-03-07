@@ -25,6 +25,7 @@ use HTTP::Link::Parser;
 use LWP::UserAgent;
 use MIME::Base64 qw(decode_base64);
 use RDF::Trine 0.112;
+use Scalar::Util qw(blessed);
 use URI;
 use URI::URL;
 use XML::LibXML qw(:all);
@@ -44,11 +45,13 @@ our $VERSION = '0.102';
 
 =head1 DESCRIPTION
 
+This has a pretty similar interface to L<RDF::RDFa::Parser>.
+
 =head2 Constructor
 
 =over 4
 
-=item C<< XML::Atom::OWL->new($xml, $baseuri, \%options, $storage) >>
+=item C<< new($xml, $baseuri, \%options, $storage) >>
 
 This method creates a new XML::Atom::OWL object and returns it.
 
@@ -93,7 +96,7 @@ sub new
 		$content = $response->decoded_content;
 	}
 
-	if (UNIVERSAL::isa($content, 'XML::LibXML::Document'))
+	if (blessed($content) and $content->isa('XML::LibXML::Document'))
 	{
 		($domtree, $content) = ($content, $content->toString);
 	}
@@ -1031,7 +1034,7 @@ sub get_node_base
 			if $node->hasAttributeNS(XML_XML_NS, 'base');
 			
 		$node = $node->parentNode;
-		last unless UNIVERSAL::isa($node, 'XML::LibXML::Element');
+		last unless blessed($node) && $node->isa('XML::LibXML::Element');
 	}
 	
 	my $rv = url $this->uri; # document URI.
@@ -1395,7 +1398,7 @@ Please report any bugs to L<http://rt.cpan.org/>.
 
 =head1 SEE ALSO
 
-L<RDF::Trine>, L<RDF::RDFa::Parser>.
+L<RDF::Trine>, L<XML::Atom::FromOWL>.
 
 L<http://www.perlrdf.org/>.
 
