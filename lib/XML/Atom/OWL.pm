@@ -12,7 +12,6 @@ use MIME::Base64 0 qw(decode_base64);
 use RDF::Trine 0.135;
 use Scalar::Util 0 qw(blessed);
 use URI 1.30;
-use URI::URL 0;
 use XML::LibXML 1.70 qw(:all);
 
 use constant AAIR_NS  => 'http://xmlns.notu.be/aair#';
@@ -105,8 +104,8 @@ sub uri
 		$base = $this->get_node_base($opts->{'element'});
 	}
 	
-	my $url = url $param, $base;
-	my $rv  = $url->abs->as_string;
+	my $url = URI->new($param);
+	my $rv  = $url->abs($base)->as_string;
 
 	while ($rv =~ m!^(http://.*)(\.\./|\.)+(\.\.|\.)?$!i)
 	{
@@ -405,8 +404,7 @@ sub consume_feed_or_entry
 			$is_as++;
 			my $url = $e->textContent;
 			$url =~ s/(^\s*)|(\s*$)//g;
-			$url = url $url, 'http://activitystrea.ms/schema/1.0/';
-			$self->rdf_triple($e, $id, AAIR_NS.'activityVerb', "$url");
+			$self->rdf_triple($e, $id, AAIR_NS.'activityVerb', URI->new($url)->abs('http://activitystrea.ms/schema/1.0/')->as_string);
 		}
 		if ($is_as && !@elems)
 		{
@@ -421,8 +419,7 @@ sub consume_feed_or_entry
 		{
 			my $url = $e->textContent;
 			$url =~ s/(^\s*)|(\s*$)//g;
-			$url = url $url, 'http://activitystrea.ms/schema/1.0/';
-			$self->rdf_triple($e, $id, RDF_NS.'type', "$url");
+			$self->rdf_triple($e, $id, RDF_NS.'type', URI->new($url)->abs('http://activitystrea.ms/schema/1.0/')->as_string);
 		}
 	}
 
@@ -967,14 +964,14 @@ sub get_node_base
 		last unless blessed($node) && $node->isa('XML::LibXML::Element');
 	}
 	
-	my $rv = url $this->uri; # document URI.
+	my $rv = URI->new($this->uri); # document URI.
 	
 	while (my $b = pop @base)
 	{
-		$rv = url $b, $rv->abs->as_string;
+		$rv = URI->new($b)->abs($rv);
 	}
 	
-	return $rv->abs->as_string;
+	return $rv->as_string;
 }
 
 sub rdf_triple
