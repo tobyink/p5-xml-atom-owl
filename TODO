@@ -1,3 +1,2 @@
-TODO:
-- no major new features planned
-* Add keywords to Makefile.PL
+- Support <georss:point>
+- Perhaps support PoCo in Atom?

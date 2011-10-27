@@ -1,37 +1,24 @@
-#!/usr/bin/perl
-
-=head1 NAME
-
-XML::Atom::OWL - parse an Atom file into RDF
-
-=head1 SYNOPSIS
-
- use XML::Atom::OWL;
- 
- $parser = XML::Atom::OWL->new($xml, $baseuri);
- $graph  = $parser->graph;
-
-=cut
-
 package XML::Atom::OWL;
 
-use 5.008;
+use 5.010;
 use common::sense;
 
-use Carp;
-use DateTime;
-use Encode qw(encode_utf8);
-use HTTP::Link::Parser;
-use LWP::UserAgent;
-use MIME::Base64 qw(decode_base64);
-use RDF::Trine 0.112;
-use Scalar::Util qw(blessed);
-use URI;
-use URI::URL;
-use XML::LibXML qw(:all);
+use Carp 1.00;
+use DateTime 0;
+use Encode 0 qw(encode_utf8);
+use HTTP::Link::Parser 0.100;
+use LWP::UserAgent 0;
+use MIME::Base64 0 qw(decode_base64);
+use RDF::Trine 0.135;
+use Scalar::Util 0 qw(blessed);
+use URI 1.30;
+use URI::URL 0;
+use XML::LibXML 1.70 qw(:all);
 
+use constant AAIR_NS  => 'http://xmlns.notu.be/aair#';
 use constant ATOM_NS  => 'http://www.w3.org/2005/Atom';
 use constant AWOL_NS  => 'http://bblfish.net/work/atom-owl/2006-06-06/#';
+use constant AS_NS    => 'http://activitystrea.ms/spec/1.0/';
 use constant AX_NS    => 'http://buzzword.org.uk/rdf/atomix#';
 use constant FH_NS    => 'http://purl.org/syndication/history/1.0';
 use constant FOAF_NS  => 'http://xmlns.com/foaf/0.1/';
@@ -41,38 +28,7 @@ use constant RDF_TYPE => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
 use constant THR_NS   => 'http://purl.org/syndication/thread/1.0';
 use constant XSD_NS   => 'http://www.w3.org/2001/XMLSchema#';
 
-our $VERSION = '0.102';
-
-=head1 DESCRIPTION
-
-This has a pretty similar interface to L<RDF::RDFa::Parser>.
-
-=head2 Constructor
-
-=over 4
-
-=item C<< new($xml, $baseuri, \%options, $storage) >>
-
-This method creates a new XML::Atom::OWL object and returns it.
-
-The $xml variable may contain an XML (Atom) string, or an
-L<XML::LibXML::Document> object. If a string, the document is parsed
-using L<XML::LibXML>, which will throw an exception if it is not
-well-formed. XML::Atom::OWL does not catch the exception.
-
-The base URI is used to resolve relative URIs found in the document.
-
-Currently only one option is defined, 'no_fetch_content_src', a boolean
-indicating whether <content src> URLs should be automatically fetched
-and added to the model as if inline content had been provided. They are
-fetched by default, but it's pretty rare for feeds to include this attribute.
-
-$storage is an RDF::Trine::Storage object. If undef, then a new
-temporary store is created.
-
-=back
-
-=cut
+our $VERSION = '0.103';
 
 sub new
 {
@@ -121,25 +77,6 @@ sub new
 	return $self;
 }
 
-=head2 Public Methods
-
-=over 4
-
-=item C<< uri >>
-
-Returns the base URI of the document being parsed. This will usually be the
-same as the base URI provided to the constructor.
-
-Optionally it may be passed a parameter - an absolute or relative URI - in
-which case it returns the same URI which it was passed as a parameter, but
-as an absolute URI, resolved relative to the document's base URI.
-
-This seems like two unrelated functions, but if you consider the consequence
-of passing a relative URI consisting of a zero-length string, it in fact makes
-sense.
-
-=cut
-
 sub uri
 {
 	my $this  = shift;
@@ -179,27 +116,12 @@ sub uri
 	return $rv;
 }
 
-=item C<< dom >>
-
-Returns the parsed XML::LibXML::Document.
-
-=cut
-
 sub dom
 {
 	my $this = shift;
 	return $this->{DOM};
 }
 
-
-=item C<< graph >>
-
-This method will return an RDF::Trine::Model object with all
-statements of the full graph.
-
-This method automatically calls C<consume>.
-
-=cut
 
 sub graph
 {
@@ -215,15 +137,6 @@ sub graphs
 	return { $this->{'baseuri'} => $this->{RESULTS} };
 }
 
-=item C<< root_identifier >>
-
-Returns the blank node or URI for the root element of the Atom
-document as an RDF::Trine::Node
-
-Calls C<consume> automatically.
-
-=cut
-
 sub root_identifier
 {
 	my $self = shift;
@@ -237,23 +150,6 @@ sub root_identifier
 		return RDF::Trine::Node::Resource->new($self->{'root_identifier'});
 	}
 }
-
-=item C<< set_callbacks(\%callbacks) >>
-
-Set callback functions for the parser to call on certain events. These are only necessary if
-you want to do something especially unusual.
-
-  $p->set_callbacks({
-    'pretriple_resource' => sub { ... } ,
-    'pretriple_literal'  => sub { ... } ,
-    'ontriple'           => undef ,
-    });
-
-For details of the callback functions, see the section CALLBACKS. C<set_callbacks> must
-be used I<before> C<consume>. C<set_callbacks> itself returns a reference to the parser
-object itself.
-
-=cut
 
 sub set_callbacks
 # Set callback functions for handling RDF triples.
@@ -275,22 +171,6 @@ sub set_callbacks
 	
 	return $this;
 }
-
-=item C<< consume >>
-
-The document is parsed. Triples extracted from the document are passed
-to the callbacks as each one is found; triples are made available in the
-model returned by the C<graph> method.
-
-This function returns the parser object itself, making it easy to
-abbreviate several of XML::Atom::OWL's functions:
-
-  my $iterator = XML::Atom::OWL->new(undef, $uri)
-                 ->consume->graph->as_stream;
-
-You probably only need to call this explicitly if you're using callbacks.
-
-=cut
 
 sub consume
 {
@@ -503,6 +383,49 @@ sub consume_feed_or_entry
 		$self->rdf_triple_literal($e, $id, AWOL_NS.'id', $_id, XSD_NS.'anyURI');
 	}
 	
+	my $is_as = 0;
+	
+	# activitystreams:object, activitystreams:target
+	foreach my $role (qw(object target))
+	{
+		my @elems = $fore->getChildrenByTagNameNS(AS_NS, $role);
+		foreach my $e (@elems)
+		{
+			$is_as++;
+			my $obj_id = $self->consume_entry($e, $id);
+			$self->rdf_triple($e, $id, AAIR_NS.'activity'.ucfirst($role), $obj_id);
+		}
+	}
+
+	# activitystreams:verb
+	{
+		my @elems = $fore->getChildrenByTagNameNS(AS_NS, 'verb');
+		foreach my $e (@elems)
+		{
+			$is_as++;
+			my $url = $e->textContent;
+			$url =~ s/(^\s*)|(\s*$)//g;
+			$url = url $url, 'http://activitystrea.ms/schema/1.0/';
+			$self->rdf_triple($e, $id, AAIR_NS.'activityVerb', "$url");
+		}
+		if ($is_as && !@elems)
+		{
+			$self->rdf_triple($fore, $id, AAIR_NS.'activityVerb', "http://activitystrea.ms/schema/1.0/post");
+		}
+	}
+
+	# activitystreams:object-type
+	{
+		my @elems = $fore->getChildrenByTagNameNS(AS_NS, 'object-type');
+		foreach my $e (@elems)
+		{
+			my $url = $e->textContent;
+			$url =~ s/(^\s*)|(\s*$)//g;
+			$url = url $url, 'http://activitystrea.ms/schema/1.0/';
+			$self->rdf_triple($e, $id, RDF_NS.'type', "$url");
+		}
+	}
+
 	# authors and contributors
 	foreach my $role (qw(author contributor))
 	{
@@ -511,6 +434,12 @@ sub consume_feed_or_entry
 		{
 			my $person_identifier = $self->consume_person($e);
 			$self->rdf_triple($e, $id, AWOL_NS.$role, $person_identifier);
+			
+			if ($role eq 'author' and $is_as)
+			{
+				$self->rdf_triple($e, $person_identifier, RDF_NS.'type', AAIR_NS.'Actor');
+				$self->rdf_triple($e, $id, AAIR_NS.'activityActor', $person_identifier);
+			}
 		}
 	}
 
@@ -553,13 +482,14 @@ sub consume_feed_or_entry
 			$self->rdf_triple($e, $id, AWOL_NS.'category', $cat_identifier);
 		}
 	}
-	
+
 	# Unknown Extensions!
 	{
 		my @elems = $fore->getChildrenByTagName('*');
 		foreach my $e (@elems)
 		{
 			next if $e->namespaceURI eq ATOM_NS;
+			next if $e->namespaceURI eq AS_NS;
 			next if $e->namespaceURI eq FH_NS;
 			next if $e->namespaceURI eq THR_NS;
 			
@@ -1304,7 +1234,113 @@ sub valid_lang
 	return $r;
 }
 
-1;
+'A man, a plan, a canal: Panama'; # E, r u true?
+
+__END__
+
+=head1 NAME
+
+XML::Atom::OWL - parse an Atom file into RDF
+
+=head1 SYNOPSIS
+
+ use XML::Atom::OWL;
+ 
+ $parser = XML::Atom::OWL->new($xml, $baseuri);
+ $graph  = $parser->graph;
+
+=head1 DESCRIPTION
+
+This has a pretty similar interface to L<RDF::RDFa::Parser>.
+
+=head2 Constructor
+
+=over 4
+
+=item C<< new($xml, $baseuri, \%options, $storage) >>
+
+This method creates a new XML::Atom::OWL object and returns it.
+
+The $xml variable may contain an XML (Atom) string, or an
+L<XML::LibXML::Document> object. If a string, the document is parsed
+using L<XML::LibXML>, which will throw an exception if it is not
+well-formed. XML::Atom::OWL does not catch the exception.
+
+The base URI is used to resolve relative URIs found in the document.
+
+Currently only one option is defined, 'no_fetch_content_src', a boolean
+indicating whether <content src> URLs should be automatically fetched
+and added to the model as if inline content had been provided. They are
+fetched by default, but it's pretty rare for feeds to include this attribute.
+
+$storage is an RDF::Trine::Storage object. If undef, then a new
+temporary store is created.
+
+=back
+
+=head2 Public Methods
+
+=over 4
+
+=item C<< uri >>
+
+Returns the base URI of the document being parsed. This will usually be the
+same as the base URI provided to the constructor.
+
+Optionally it may be passed a parameter - an absolute or relative URI - in
+which case it returns the same URI which it was passed as a parameter, but
+as an absolute URI, resolved relative to the document's base URI.
+
+This seems like two unrelated functions, but if you consider the consequence
+of passing a relative URI consisting of a zero-length string, it in fact makes
+sense.
+
+=item C<< dom >>
+
+Returns the parsed XML::LibXML::Document.
+
+=item C<< graph >>
+
+This method will return an RDF::Trine::Model object with all
+statements of the full graph.
+
+This method automatically calls C<consume>.
+
+=item C<< root_identifier >>
+
+Returns the blank node or URI for the root element of the Atom
+document as an RDF::Trine::Node
+
+Calls C<consume> automatically.
+
+=item C<< set_callbacks(\%callbacks) >>
+
+Set callback functions for the parser to call on certain events. These are only necessary if
+you want to do something especially unusual.
+
+  $p->set_callbacks({
+    'pretriple_resource' => sub { ... } ,
+    'pretriple_literal'  => sub { ... } ,
+    'ontriple'           => undef ,
+    });
+
+For details of the callback functions, see the section CALLBACKS. C<set_callbacks> must
+be used I<before> C<consume>. C<set_callbacks> itself returns a reference to the parser
+object itself.
+
+=item C<< consume >>
+
+The document is parsed. Triples extracted from the document are passed
+to the callbacks as each one is found; triples are made available in the
+model returned by the C<graph> method.
+
+This function returns the parser object itself, making it easy to
+abbreviate several of XML::Atom::OWL's functions:
+
+  my $iterator = XML::Atom::OWL->new(undef, $uri)
+                 ->consume->graph->as_stream;
+
+You probably only need to call this explicitly if you're using callbacks.
 
 =back
 
@@ -1406,11 +1442,16 @@ L<http://www.perlrdf.org/>.
 
 Toby Inkster E<lt>tobyink@cpan.orgE<gt>.
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT AND LICENCE
 
 Copyright 2010-2011 Toby Inkster
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
-=cut
+=head1 DISCLAIMER OF WARRANTIES
+
+THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
