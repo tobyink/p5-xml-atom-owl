@@ -27,7 +27,7 @@ use constant RDF_TYPE => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
 use constant THR_NS   => 'http://purl.org/syndication/thread/1.0';
 use constant XSD_NS   => 'http://www.w3.org/2001/XMLSchema#';
 
-our $VERSION = '0.103';
+our $VERSION = '0.104';
 
 sub new
 {
