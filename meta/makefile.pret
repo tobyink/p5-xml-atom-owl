@@ -1,0 +1,17 @@
+@prefix deps:  <http://ontologi.es/doap-deps#> .
+
+<http://purl.org/NET/cpan-uri/dist/XML-Atom-OWL/project>
+	deps:runtime-requirement         [ deps:on "Carp 1.00"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "common::sense 0"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "DateTime 0"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "Encode 0"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "HTTP::Link::Parser 0.100"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "LWP::UserAgent 0"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "MIME::Base64 0"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "RDF::Trine 0.135"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "Scalar::Util 0"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "URI 1.30"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "URI::URL 0"^^deps:CpanId ];
+	deps:runtime-requirement         [ deps:on "XML::LibXML 1.70"^^deps:CpanId ];
+	deps:test-requirement            [ deps:on "Test::More 0.61"^^deps:CpanId ].
+
